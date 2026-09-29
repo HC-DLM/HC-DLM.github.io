@@ -21,7 +21,7 @@ window.SITE = {
 
   links: {
     arxiv: "TODO https://arxiv.org/abs/XXXX.XXXXX",
-    code: "TODO https://github.com/ORG/REPO",
+    code: "https://github.com/rhfeiyang/HC-DLM",
   },
 
   bibtex: `@article{ren2026hierarchical,

@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HC-DLM — Hierarchical Continuous Diffusion Language Models</title>
+<meta name="description" content="HC-DLM: a diffusion language model whose reverse process is a two-level chain. A continuous latent is the only persistent state; tokens are read out from it at every step and fed back as a scaffold for the next latent update.">
+<meta property="og:title" content="Hierarchical Continuous Diffusion Language Models">
+<meta property="og:description" content="Tokens read out of a continuous latent at every step and fed back into its denoiser, trained from a single variational bound.">
+<meta property="og:image" content="assets/pipeline_inference_v2.webp">
+<meta property="og:type" content="article">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%231f4a8a%27/%3E%3Crect x=%277%27 y=%2712%27 width=%2718%27 height=%278%27 rx=%272%27 fill=%27%23fff%27/%3E%3Crect x=%279%27 y=%276%27 width=%274%27 height=%274%27 rx=%271%27 fill=%27%23e0736a%27/%3E%3Crect x=%2714%27 y=%276%27 width=%274%27 height=%274%27 rx=%271%27 fill=%27%23f2c58a%27/%3E%3Crect x=%2719%27 y=%276%27 width=%274%27 height=%274%27 rx=%271%27 fill=%27%239fd8c8%27/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="topnav" aria-label="Sections">
+  <a class="brand" href="#top"><span class="ac">HC</span>-DLM</a>
+  <ul>
+    <li><a href="#abstract">Abstract</a></li>
+    <li><a href="#method">Method</a></li>
+    <li><a href="#novelty">What is new</a></li>
+    <li><a href="#results">Results</a></li>
+    <li><a href="#ablation">Ablations</a></li>
+    <li><a class="nav-pill" href="#cite">BibTeX</a></li>
+  </ul>
+</nav>
+
+<header class="hero" id="top">
+  <div class="hero-inner">
+    <h1 class="publication-title"><span class="ac">H</span>ierarchical <span class="ac">C</span>ontinuous <span class="ac">D</span>iffusion <span class="ac">L</span>anguage <span class="ac">M</span>odels</h1>
+    <p class="subtitle">A continuous latent is the only state that persists across denoising steps. Tokens are read out of it at every step and fed back as the scaffold for the next latent update.</p>
+    <p class="authors" id="authors"></p>
+    <p class="affils" id="affils"></p>
+    <nav class="links" id="links" aria-label="Paper resources"></nav>
+  </div>
+
+  <section class="demo" id="demo" aria-label="How HC-DLM samples, with a simulated example">
+    <div class="demo-head">
+      <div>
+        <p class="demo-kicker">How HC-DLM samples · simulated example</p>
+        <h2 class="demo-title">Only the latent persists; tokens are read out and fed back at every step</h2>
+      </div>
+      <div class="demo-controls">
+        <button type="button" class="ctl" id="demo-play" aria-label="Pause">Pause</button>
+        <button type="button" class="ctl ghost" id="demo-restart">Restart</button>
+        <label class="demo-step"><span class="m">t / T</span> = <output id="demo-t">1.00</output></label>
+        <input type="range" id="demo-range" min="0" max="8" value="8" step="1" aria-label="Denoising step">
+      </div>
+    </div>
+
+    <div class="svg-scroll">
+    <svg class="chain" viewBox="0 0 1200 364" role="img" data-phase="step" aria-labelledby="chain-title chain-desc">
+      <title id="chain-title">The HC-DLM reverse process</title>
+      <desc id="chain-desc">A continuous latent trajectory from x_T to x_0 runs along the bottom. At each step tokens k_t are read out of the latent x_t, re-noised, and condition the next latent transition to x_{t-1}. Only the latent persists from step to step.</desc>
+      <defs>
+        <pattern id="hatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+          <line x1="0" y1="0" x2="0" y2="7" stroke="#3d4a58" stroke-width="1.6"/>
+        </pattern>
+        <linearGradient id="latentFill" x1="0" x2="1">
+          <stop offset="0" stop-color="#cfe0f7"/><stop offset="1" stop-color="#e6eef9"/>
+        </linearGradient>
+        <marker id="arrowBlue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#2f66b3"/></marker>
+        <marker id="arrowCoral" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#d1553c"/></marker>
+        <marker id="arrowInk" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#1a1c20"/></marker>
+        <marker id="arrowGrey" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#9aa5b1"/></marker>
+      </defs>
+
+      <rect x="40" y="188" width="1120" height="146" rx="18" fill="#f2f6fc" stroke="#c9d6ea" stroke-dasharray="6 5"/>
+      <text x="64" y="318" class="svg-label">Latent space</text>
+
+      <g class="faded">
+        <path d="M265 250 H300" class="ln blue" marker-end="url(#arrowBlue)"/>
+        <text x="320" y="256" class="dots ctr">···</text>
+        <path d="M340 250 H372" class="ln blue" marker-end="url(#arrowBlue)"/>
+        <path d="M565 250 H673" class="ln blue" marker-end="url(#arrowBlue)"/>
+        <path d="M865 250 H900" class="ln blue" marker-end="url(#arrowBlue)"/>
+        <text x="920" y="256" class="dots ctr">···</text>
+        <path d="M940 250 H972" class="ln blue" marker-end="url(#arrowBlue)"/>
+        <path d="M170 222 V118" class="ln ink" marker-end="url(#arrowInk)"/>
+        <path d="M470 222 V118" class="ln ink" marker-end="url(#arrowInk)"/>
+        <path d="M770 222 V118" class="ln ink" marker-end="url(#arrowInk)"/>
+        <path d="M1070 222 V118" class="ln ink" marker-end="url(#arrowInk)"/>
+        <path d="M262 108 L400 218" class="ln coral" marker-end="url(#arrowCoral)"/>
+        <path d="M562 108 L700 218" class="ln coral" marker-end="url(#arrowCoral)"/>
+        <path d="M862 108 L1000 218" class="ln coral" marker-end="url(#arrowCoral)"/>
+      </g>
+      <g class="kernels">
+        <path d="M720 64 C 650 22, 590 22, 522 62" class="ln grey dashed" marker-end="url(#arrowGrey)"/>
+        <path d="M765 288 C 700 324, 540 324, 478 290" class="ln grey dashed" marker-end="url(#arrowGrey)"/>
+      </g>
+
+      <g class="live">
+        <path d="M470 222 V118" class="ln ink draw a-read-t" pathLength="1" marker-end="url(#arrowInk)"/>
+        <path d="M562 108 L700 218" class="ln coral draw a-feed-t" pathLength="1" marker-end="url(#arrowCoral)"/>
+        <path d="M565 250 H673" class="ln blue draw a-chain-t" pathLength="1" marker-end="url(#arrowBlue)"/>
+        <path d="M1070 222 V118" class="ln ink draw a-read-0" pathLength="1" marker-end="url(#arrowInk)"/>
+      </g>
+
+      <g class="latents">
+        <g class="latent" transform="translate(75,222)"><rect width="190" height="56" rx="10" fill="url(#latentFill)" stroke="#2f66b3"/><rect width="190" height="56" rx="10" fill="url(#hatch)" opacity="0.55"/><text x="95" y="36" class="math">x<tspan class="sub" dy="6">T</tspan></text></g>
+        <g class="latent pulse p-t" transform="translate(375,222)"><rect width="190" height="56" rx="10" fill="url(#latentFill)" stroke="#2f66b3"/><rect width="190" height="56" rx="10" fill="url(#hatch)" opacity="0.32"/><text x="95" y="36" class="math">x<tspan class="sub" dy="6">t</tspan></text></g>
+        <g class="latent" transform="translate(675,222)"><rect width="190" height="56" rx="10" fill="url(#latentFill)" stroke="#2f66b3"/><rect width="190" height="56" rx="10" fill="url(#hatch)" opacity="0.16"/><text x="95" y="36" class="math">x<tspan class="sub" dy="6">t−1</tspan></text></g>
+        <g class="latent pulse p-0" transform="translate(975,222)"><rect width="190" height="56" rx="10" fill="url(#latentFill)" stroke="#2f66b3"/><text x="95" y="36" class="math">x<tspan class="sub num" dy="6">0</tspan></text></g>
+      </g>
+
+      <g class="tokens">
+        <g transform="translate(86,74)"><rect width="36" height="36" rx="7" class="tk c1"/><rect x="44" width="36" height="36" rx="7" class="tk c2"/><rect x="88" width="36" height="36" rx="7" class="tk c3"/><rect x="132" width="36" height="36" rx="7" class="tk c4"/><rect width="168" height="36" rx="7" fill="url(#hatch)" opacity="0.75"/></g>
+        <g transform="translate(386,74)"><g class="pop k-t"><rect width="36" height="36" rx="7" class="tk c1"/><rect x="44" width="36" height="36" rx="7" class="tk c2"/><rect x="88" width="36" height="36" rx="7" class="tk c3"/><rect x="132" width="36" height="36" rx="7" class="tk c4"/><rect width="168" height="36" rx="7" fill="url(#hatch)" opacity="0.45"/></g></g>
+        <g transform="translate(686,74)"><g class="k-t1"><rect width="36" height="36" rx="7" class="tk c1"/><rect x="44" width="36" height="36" rx="7" class="tk c2"/><rect x="88" width="36" height="36" rx="7" class="tk c3"/><rect x="132" width="36" height="36" rx="7" class="tk c4"/><rect width="168" height="36" rx="7" fill="url(#hatch)" opacity="0.22"/></g></g>
+        <g transform="translate(986,74)"><g class="pop k-0"><rect width="36" height="36" rx="7" class="tk c1"/><rect x="44" width="36" height="36" rx="7" class="tk c2"/><rect x="88" width="36" height="36" rx="7" class="tk c3"/><rect x="132" width="36" height="36" rx="7" class="tk c4"/></g></g>
+      </g>
+
+      <text x="170" y="58" class="math ctr">k<tspan class="sub" dy="6">T</tspan></text>
+      <text x="470" y="58" class="math ctr">k<tspan class="sub" dy="6">t</tspan></text>
+      <text x="770" y="58" class="math ctr">k<tspan class="sub" dy="6">t−1</tspan></text>
+      <text x="1070" y="58" class="math ctr">k<tspan class="sub num" dy="6">0</tspan></text>
+      <text x="620" y="26" class="math small grey ctr">q<tspan dy="0">(k</tspan><tspan class="sub" dy="5">t</tspan><tspan dy="-5"> </tspan><tspan class="up">∣</tspan><tspan> k</tspan><tspan class="sub" dy="5">t−1</tspan><tspan dy="-5">)</tspan></text>
+      <text x="620" y="352" class="math small grey ctr">q<tspan dy="0">(x</tspan><tspan class="sub" dy="5">t</tspan><tspan dy="-5"> </tspan><tspan class="up">∣</tspan><tspan> x</tspan><tspan class="sub" dy="5">t−1</tspan><tspan dy="-5">)</tspan></text>
+      <text x="458" y="172" class="svg-label ink end">read out</text>
+      <text x="458" y="190" class="math small end">p<tspan class="sub" dy="5">θ</tspan><tspan dy="-5">(k</tspan><tspan class="sub" dy="5">t</tspan><tspan dy="-5"> </tspan><tspan class="up">∣</tspan><tspan> x</tspan><tspan class="sub" dy="5">t</tspan><tspan dy="-5">)</tspan></text>
+      <text x="652" y="150" class="svg-label coral">feed back</text>
+      <text x="619" y="272" class="math small blue ctr">p<tspan class="sub" dy="5">φ</tspan><tspan dy="-5">(x</tspan><tspan class="sub" dy="5">t−1</tspan><tspan dy="-5"> </tspan><tspan class="up">∣</tspan><tspan> x</tspan><tspan class="sub" dy="5">t</tspan><tspan dy="-5">, k</tspan><tspan class="sub" dy="5">t</tspan><tspan dy="-5">)</tspan></text>
+    </svg>
+    </div>
+
+    <div class="demo-grid">
+      <div class="demo-sym"><span class="m">x<sub>t</sub></span></div>
+      <div class="latent-strip" id="demo-latent" aria-hidden="true"></div>
+
+      <div></div>
+      <div class="demo-arrow ink"><i></i><b>read out</b><span class="m">p<sub>θ</sub>(k<sub class="num">0</sub> <span class="up">∣</span> x̂<sub class="num">0</sub>)</span></div>
+
+      <div class="demo-sym"><span class="m">k̂<sub class="num">0</sub></span></div>
+      <div class="token-row" id="demo-tokens"></div>
+
+      <div></div>
+      <div class="demo-arrow grey"><i></i><b>re-noise</b><span class="m">q(k<sub>t−1</sub> <span class="up">∣</span> k̂<sub class="num">0</sub>)</span><em>fed back as the scaffold for the next step</em></div>
+
+      <div class="demo-sym"><span class="m">k<sub>t−1</sub></span></div>
+      <div class="token-row scaffold" id="demo-scaffold"></div>
+    </div>
+
+    <div class="demo-legend">
+      <span><i class="sw settled"></i>settled</span>
+      <span><i class="sw tentative"></i>still changing</span>
+      <span><i class="sw changed"></i>revised this step</span>
+      <span><i class="sw noised"></i>re-noised</span>
+      <!-- <span class="demo-note">Scripted example, not model output.</span> -->
+    </div>
+  </section>
+</header>
+
+<main>
+
+<section class="section" id="abstract">
+  <div class="container narrow">
+    <p class="kicker">Abstract</p>
+    <h2>Two weaknesses, one remedy</h2>
+    <div class="prose">
+      <p>Discrete diffusion language models offer a compelling alternative to autoregressive generation for tasks demanding bidirectional reasoning and global constraint satisfaction. Yet they share a structural bottleneck: when decoding in parallel, each token is sampled independently from its marginal, severing the statistical dependencies among the tokens decoded together. Continuous diffusion language models avoid this by denoising a shared continuous state, but their denoiser sees only that state, so nothing ties it to a valid token configuration until it is finally decoded.</p>
+      <p>To address this, we propose <strong>Hierarchical Continuous Diffusion Language Models (HC-DLM)</strong>, which couple discrete token generation with a continuous latent trajectory in a single, principled denoising process, whose training objective is derived from a variational bound on the token likelihood. In contrast to recent methods that attach continuous context to a self-contained discrete chain, HC-DLM makes <strong>the latent the only persistent generative state</strong>: tokens are read out from it at every step and feed back as a scaffold for the next latent update.</p>
+      <p>On structured reasoning (Sudoku), mathematical planning (Countdown) and language modeling (LM1B), HC-DLM improves over <strong>discrete and continuous diffusion baselines at matched model size</strong>, in puzzle accuracy on Sudoku and Countdown and in generative perplexity on LM1B.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section section-alt" id="method">
+  <div class="container narrow">
+    <p class="kicker">Method</p>
+    <h2>One latent chain, tokens read out at every step</h2>
+    <p class="lead">The two forward kernels are independent, so both marginals stay tractable. The reverse chain breaks the symmetry: the token predictor reads <span class="m">k<sub>t</sub></span> out of <span class="m">x<sub>t</sub></span>, and the denoiser advances the latent conditioned on that scaffold.</p>
+    <div class="equation">
+      $$p_{\theta,\phi}(k_{0:T},\,x_{0:T}) \;=\; p(x_T)\;p_\theta(k_0\mid x_0)\prod_{t=1}^{T} \underbrace{p_\theta(k_t\mid x_t)}_{\text{token readout}}\;\;\underbrace{p_\phi(x_{t-1}\mid x_t,\,k_t)}_{\substack{\text{scaffold-conditioned}\\ \text{denoising}}}$$
+    </div>
+  </div>
+  <div class="container">
+    <figure class="figure framed">
+      <img src="assets/pipeline_train_v2.webp" alt="Training pipeline. An encoder maps clean tokens k_0 to a latent x_0. Independent forward kernels produce the noisy pair (x_t, k_t). The token-conditioned denoiser predicts the clean latent (loss J_cont), the token predictor decodes x_0 to tokens (loss J_recon), and the encoder is regularized by an entropy term J_ent." width="2400" height="906">
+      <figcaption><strong>Training from a single variational bound.</strong> The ELBO over the two-level trajectory separates into a reconstruction term for the token predictor, a token-conditioned continuous denoising term implemented with flow matching, and an entropy term that keeps the encoder non-degenerate. Algorithm 1 is the training loop; Algorithm 2 is the sampler illustrated at the top of the page.</figcaption>
+    </figure>
+    <div class="algs">
+      <figure class="figure alg">
+        <img src="assets/alg_train.webp" alt="Algorithm 1, HC-DLM training: sample k_0 and t, encode x_0, noise x_t and k_t independently, compute the weighted sum of the reconstruction, entropy and continuous denoising losses, update theta, phi, psi." width="1539" height="693">
+      </figure>
+      <figure class="figure alg">
+        <img src="assets/alg_sample.webp" alt="Algorithm 2, HC-DLM sampling: start from Gaussian x_T and stationary k_T; for t from T to 1, estimate the clean latent from (x_t, k_t), take an Euler step to x_{t-1}, read tokens out of the estimate, and re-noise them to level t-1; return the tokens read out of x_0." width="1539" height="710">
+      </figure>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="novelty">
+  <div class="container narrow">
+    <p class="kicker">What is new</p>
+    <h2>A hierarchy, not a hybrid</h2>
+    <p class="lead">Hybrid models pair a discrete chain with a continuous channel, but the tokens keep a <strong>transition chain of their own</strong>. In HC-DLM the token state has <strong>no transition kernel</strong>: it depends on the past only through the latent, and the read-out scaffold is a variable of the model with its own forward kernel, not a fed-back estimate.</p>
+  </div>
+  <div class="container">
+    <figure class="figure framed">
+      <img src="assets/comparison.webp" alt="Four reverse-step diagrams. (a) MDM: tokens k_t to k_{t-1} through a learned predictor. (b) CADD: same discrete chain plus a parameter-free lookup into token embeddings. (c) CCDD: a discrete chain and a continuous chain denoised side by side. (d) HC-DLM: the latent x_t to x_{t-1} is the only chain; tokens are read out from x_t and condition the latent update." width="2400" height="687">
+      <figcaption><strong>One reverse step, four designs.</strong> In MDM, CADD and CCDD the discrete chain is the generative process and the continuous signal plays a supporting role. In HC-DLM the latent is the chain; tokens are read out of it and fed back.</figcaption>
+    </figure>
+
+    <div class="table-wrap">
+      <table class="compare">
+        <thead><tr><th scope="col">Method</th><th scope="col">Continuous variable</th><th scope="col">Update of the continuous variable</th><th scope="col">Input of the token predictor</th><th scope="col">Decoded token can change later</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">MDM</th><td>none</td><td class="na">—</td><td><span class="m">k<sub>t</sub></span></td><td class="mark no">✕</td></tr>
+          <tr><th scope="row">VMD</th><td>global latent</td><td>not updated (sampled once)</td><td><span class="m">k<sub>t</sub>, z</span></td><td class="mark no">✕</td></tr>
+          <tr><th scope="row">CADD</th><td>noised token embeddings</td><td>no learned update</td><td><span class="m">k<sub>t</sub>, x<sub>t</sub></span></td><td class="mark no">✕</td></tr>
+          <tr><th scope="row">CCDD</th><td>frozen token embeddings</td><td>learned denoiser</td><td><span class="m">k<sub>t</sub>, x<sub>t</sub></span></td><td class="mark no">✕</td></tr>
+          <tr class="ours"><th scope="row">HC-DLM</th><td>global latent</td><td>learned denoiser</td><td><span class="m">x̂<sub class="num">0</sub></span> only</td><td class="mark yes">✓</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="table-note">MDM, VMD, CADD and CCDD use the absorbing kernel, under which a token stays fixed once it is unmasked. <span class="m">x̂<sub class="num">0</sub></span> is the denoiser's clean-latent estimate.</p>
+  </div>
+</section>
+
+<section class="section section-alt" id="results">
+  <div class="container narrow">
+    <p class="kicker">Results</p>
+    <h2>Three tasks, one consistent picture</h2>
+    <p class="lead">Structured reasoning, mathematical planning and language modeling, against autoregressive, discrete, continuous and hybrid diffusion baselines at matched model size. Parameter counts exclude token embeddings.</p>
+  </div>
+  <div class="container">
+    <div class="finding-grid">
+      <article class="finding">
+        <span class="tag">Sudoku · Reasoning</span>
+        <div class="stat"><span class="stat-num">72.41<small>%</small></span><span class="stat-sub">Hard split accuracy · 6M params <span class="dir up">↑ higher is better</span></span></div>
+        <ul class="delta"><li><b>+1.68</b> over CCDD</li><li><b>+22.53</b> over masked diffusion</li></ul>
+        <div class="bars">
+          <p class="bars-title">Hard Sudoku accuracy (%)</p>
+          <div class="bar-row ours"><span class="bar-label">HC-DLM</span><span class="bar"><i style="--v:72.41"></i></span><span class="bar-val">72.41</span></div>
+          <div class="bar-row"><span class="bar-label">CCDD</span><span class="bar"><i style="--v:70.73"></i></span><span class="bar-val">70.73</span></div>
+          <div class="bar-row"><span class="bar-label">MDM (top-prob. margin)</span><span class="bar"><i style="--v:49.88"></i></span><span class="bar-val">49.88</span></div>
+          <div class="bar-row"><span class="bar-label">Latent DM (no scaffold)</span><span class="bar"><i style="--v:24.74"></i></span><span class="bar-val">24.74</span></div>
+        </div>
+        <p>Hard puzzles need a strategy outside the seven seen in training. On Easy, HC-DLM also surpasses the best masked-diffusion variant and a 42M autoregressive model.</p>
+      </article>
+      <article class="finding">
+        <span class="tag">Countdown · Planning</span>
+        <div class="stat"><span class="stat-num">37.52<small>%</small></span><span class="stat-sub">CD5 accuracy · 6M params <span class="dir up">↑ higher is better</span></span></div>
+        <ul class="delta"><li><b>+12.17</b> over CCDD</li><li><b>+16.22</b> over masked diffusion</li></ul>
+        <div class="bars">
+          <p class="bars-title">Countdown CD5 accuracy (%)</p>
+          <div class="bar-row ours"><span class="bar-label">HC-DLM</span><span class="bar"><i style="--v:37.52"></i></span><span class="bar-val">37.52</span></div>
+          <div class="bar-row"><span class="bar-label">CCDD</span><span class="bar"><i style="--v:25.35"></i></span><span class="bar-val">25.35</span></div>
+          <div class="bar-row"><span class="bar-label">MDM (top-prob.)</span><span class="bar"><i style="--v:21.4"></i></span><span class="bar-val">21.4</span></div>
+          <div class="bar-row"><span class="bar-label">MDM (top-prob. margin)</span><span class="bar"><i style="--v:21.3"></i></span><span class="bar-val">21.3</span></div>
+        </div>
+        <p>Best result at the 6M scale on both CD4 and CD5, and the margin over CCDD widens from CD4 to the longer-horizon CD5.</p>
+      </article>
+      <article class="finding">
+        <span class="tag">LM1B · Language</span>
+        <div class="stat"><span class="stat-num">75.5</span><span class="stat-sub">Generative perplexity · 118M params <span class="dir down">↓ lower is better</span></span></div>
+        <ul class="delta"><li><b>1.8</b> lower than Plaid</li><li><b>16.7</b> lower than LangFlow</li></ul>
+        <div class="bars bars-ppl">
+          <p class="bars-title">Generative perplexity</p>
+          <div class="bar-row ours"><span class="bar-label">HC-DLM</span><span class="bar"><i style="--v:75.5"></i></span><span class="bar-val">75.5</span></div>
+          <div class="bar-row"><span class="bar-label">Plaid</span><span class="bar"><i style="--v:77.3"></i></span><span class="bar-val">77.3</span></div>
+          <div class="bar-row"><span class="bar-label">LangFlow</span><span class="bar"><i style="--v:92.2"></i></span><span class="bar-val">92.2</span></div>
+          <div class="bar-row"><span class="bar-label">Duo</span><span class="bar"><i style="--v:97.6"></i></span><span class="bar-val">97.6</span></div>
+          <div class="bar-row"><span class="bar-label">MDM</span><span class="bar"><i style="--v:103.9"></i></span><span class="bar-val">103.9</span></div>
+        </div>
+        <p>Best among the evaluated diffusion models: below every discrete baseline and both continuous models that decode only once at the end.</p>
+      </article>
+    </div>
+
+    <details class="fold">
+      <summary>Full result tables</summary>
+      <div class="tables">
+        <figure class="figure table-card">
+          <figcaption><strong>Sudoku.</strong> Accuracy (%) on the Easy and Hard splits.</figcaption>
+          <table class="results">
+            <thead><tr><th scope="col">Method</th><th scope="col">Params</th><th scope="col">Easy</th><th scope="col">Hard</th></tr></thead>
+            <tbody>
+              <tr class="group"><th scope="rowgroup" colspan="4">Autoregressive</th></tr>
+              <tr><th scope="row">ARM (w/o ordering)</th><td>42M</td><td>9.73</td><td class="na">–</td></tr>
+              <tr><th scope="row">ARM (with ordering)</th><td>42M</td><td>87.18</td><td>32.57</td></tr>
+              <tr class="group"><th scope="rowgroup" colspan="4">Discrete diffusion</th></tr>
+              <tr><th scope="row">MDM (vanilla)</th><td>6M</td><td>6.88</td><td>3.62</td></tr>
+              <tr><th scope="row">MDM (top-prob.)</th><td>6M</td><td>18.51</td><td>9.44</td></tr>
+              <tr><th scope="row">MDM (top-prob. margin)</th><td>6M</td><td>89.49</td><td>49.88</td></tr>
+              <tr class="group"><th scope="rowgroup" colspan="4">Hybrid discrete–continuous</th></tr>
+              <tr><th scope="row">CCDD</th><td>6M</td><td class="best">94.65</td><td>70.73</td></tr>
+              <tr class="ours"><th scope="row">HC-DLM (ours)</th><td>6M</td><td>94.21</td><td class="best">72.41</td></tr>
+            </tbody>
+          </table>
+        </figure>
+        <figure class="figure table-card tall">
+          <figcaption><strong>Countdown.</strong> Accuracy (%) with four (CD4) or five (CD5) numbers. Best overall in bold, best at 6M underlined.</figcaption>
+          <table class="results">
+            <thead><tr><th scope="col">Method</th><th scope="col">Params</th><th scope="col">CD4</th><th scope="col">CD5</th></tr></thead>
+            <tbody>
+              <tr class="group"><th scope="rowgroup" colspan="4">Autoregressive</th></tr>
+              <tr><th scope="row">GPT-2 Scratch</th><td>6M</td><td>31.9</td><td>4.3</td></tr>
+              <tr><th scope="row">GPT-2 Scratch</th><td>85M</td><td>45.8</td><td>5.1</td></tr>
+              <tr><th scope="row">GPT-2 Scratch</th><td>303M</td><td>41.3</td><td>4.5</td></tr>
+              <tr><th scope="row">Stream-of-Search</th><td>250M</td><td>54.2</td><td class="na">–</td></tr>
+              <tr><th scope="row">LLaMA</th><td>7B</td><td>41.1</td><td>6.7</td></tr>
+              <tr><th scope="row">LLaMA</th><td>13B</td><td>51.1</td><td>7.4</td></tr>
+              <tr class="group"><th scope="rowgroup" colspan="4">Discrete diffusion</th></tr>
+              <tr><th scope="row">VDM</th><td>85M</td><td>73.4</td><td>16.3</td></tr>
+              <tr><th scope="row">D3PM</th><td>85M</td><td>83.1</td><td>27.6</td></tr>
+              <tr><th scope="row">RDM</th><td>85M</td><td class="best">87.0</td><td class="best">45.8</td></tr>
+              <tr><th scope="row">MDM (vanilla)</th><td>6M</td><td>6.7</td><td>0.3</td></tr>
+              <tr><th scope="row">MDM (top-prob.)</th><td>6M</td><td>47.4</td><td>21.4</td></tr>
+              <tr><th scope="row">MDM (top-prob. margin)</th><td>6M</td><td>50.8</td><td>21.3</td></tr>
+              <tr class="group"><th scope="rowgroup" colspan="4">Hybrid discrete–continuous</th></tr>
+              <tr><th scope="row">CCDD</th><td>6M</td><td>81.18</td><td>25.35</td></tr>
+              <tr class="ours"><th scope="row">HC-DLM (ours)</th><td>6M</td><td class="best-scale">84.41</td><td class="best-scale">37.52</td></tr>
+            </tbody>
+          </table>
+        </figure>
+        <figure class="figure table-card">
+          <figcaption><strong>LM1B.</strong> Unconditional generation, sequence length 128, generative perplexity under GPT-2 Large.</figcaption>
+          <table class="results">
+            <thead><tr><th scope="col">Method</th><th scope="col">Params</th><th scope="col">Gen. PPL ↓</th></tr></thead>
+            <tbody>
+              <tr class="group"><th scope="rowgroup" colspan="3">Autoregressive</th></tr>
+              <tr><th scope="row">Transformer</th><td>108M</td><td>66.7</td></tr>
+              <tr class="group"><th scope="rowgroup" colspan="3">Discrete diffusion</th></tr>
+              <tr><th scope="row">MDM</th><td>116M</td><td>103.9</td></tr>
+              <tr><th scope="row">SEDD</th><td>116M</td><td>115.9</td></tr>
+              <tr><th scope="row">Duo</th><td>116M</td><td>97.6</td></tr>
+              <tr class="group"><th scope="rowgroup" colspan="3">Continuous diffusion</th></tr>
+              <tr><th scope="row">Plaid</th><td>109M</td><td>77.3</td></tr>
+              <tr><th scope="row">LangFlow</th><td>117M</td><td>92.2</td></tr>
+              <tr class="ours"><th scope="row">HC-DLM (ours)</th><td>118M</td><td class="best">75.5</td></tr>
+              <tr class="ref"><th scope="row">Ground truth</th><td class="na">–</td><td>40.4</td></tr>
+            </tbody>
+          </table>
+        </figure>
+      </div>
+      <p class="table-note">Autoregressive and masked-diffusion Sudoku rows follow Kim et al. (2025); non-MDM Countdown rows follow Ye et al. (2024); LM1B baselines are the models retrained by the LangFlow authors. MDM and CCDD on Sudoku and Countdown are reproduced at a matched 6M scale under the same protocol.</p>
+    </details>
+  </div>
+</section>
+
+<section class="section" id="ablation">
+  <div class="container narrow">
+    <p class="kicker">Ablations</p>
+    <h2>Both levels are needed</h2>
+    <p class="lead">Remove the token level and a standard latent diffusion model remains; remove the latent level and a purely discrete chain remains. Each falls well short of the full model, most on the Hard split where global constraints matter. Tables and the first two plots report Sudoku accuracy (%).</p>
+  </div>
+  <div class="container">
+    <div class="tables tables-2">
+      <figure class="figure table-card">
+        <figcaption><strong>Component ablation.</strong> Latent DM drops <span class="m">k<sub>t</sub></span> from the denoiser; MDM drops the latent altogether.</figcaption>
+        <table class="results">
+          <thead><tr><th scope="col">Method</th><th scope="col">Cont. latent</th><th scope="col">Disc. cond.</th><th scope="col">Easy</th><th scope="col">Hard</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">MDM (top-prob. margin)</th><td class="mark no">✕</td><td class="mark no">✕</td><td>89.49</td><td>49.88</td></tr>
+            <tr><th scope="row">Latent DM (w/o disc. cond.)</th><td class="mark yes">✓</td><td class="mark no">✕</td><td>50.46</td><td>24.74</td></tr>
+            <tr class="ours"><th scope="row">HC-DLM (ours)</th><td class="mark yes">✓</td><td class="mark yes">✓</td><td class="best">94.21</td><td class="best">72.41</td></tr>
+          </tbody>
+        </table>
+      </figure>
+      <figure class="figure table-card">
+        <figcaption><strong>Discrete forward kernel.</strong> A uniformly corrupted sequence is still a complete hypothesis; masks carry no information for the scaffold.</figcaption>
+        <table class="results">
+          <thead><tr><th scope="col">Noise type</th><th scope="col">Token ordering</th><th scope="col">Easy</th><th scope="col">Hard</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Absorbing-state</th><td class="txt">Random</td><td>69.60</td><td>43.74</td></tr>
+            <tr><th scope="row">Absorbing-state</th><td class="txt">Top-prob.</td><td>74.72</td><td>47.50</td></tr>
+            <tr><th scope="row">Absorbing-state</th><td class="txt">Top-prob. margin</td><td>75.59</td><td>48.25</td></tr>
+            <tr class="ours"><th scope="row">Uniform-state</th><td class="txt">Parallel update</td><td class="best">94.21</td><td class="best">72.41</td></tr>
+          </tbody>
+        </table>
+      </figure>
+    </div>
+    <div class="panels">
+      <figure class="figure panel">
+        <img src="assets/trajectory_accuracy.webp" alt="Line chart of Sudoku accuracy of the decoded intermediate prediction against normalized step t/T. HC-DLM rises from about 20% to above 90% by t/T = 0.6; the latent diffusion model without discrete conditioning rises late and plateaus near 57%." width="1800" height="1500">
+        <figcaption><strong>Information emerges earlier.</strong> Accuracy of the intermediate prediction <span class="m">x̂<sub class="num">0</sub></span> decoded at each step.</figcaption>
+      </figure>
+      <figure class="figure panel">
+        <img src="assets/denoising_steps.webp" alt="Line chart of Hard Sudoku accuracy against the number of denoising steps from 10 to 100. HC-DLM stays between 52% and 76%; MDM falls from 56% to 20% as steps decrease." width="1800" height="1500">
+        <figcaption><strong>Robust to fewer steps.</strong> Hard Sudoku accuracy against step count.</figcaption>
+      </figure>
+      <figure class="figure panel">
+        <img src="assets/lm1b_cfg.webp" alt="Line chart of LM1B generative perplexity and entropy against the classifier-free guidance scale w from 1 to 5. Perplexity falls from about 129 at w = 1 to a minimum near 71 around w = 3.5 and rises slightly after; entropy stays between 4.0 and 4.3 throughout." width="1740" height="1350">
+        <figcaption><strong>Guidance on the token channel.</strong> LM1B generative perplexity (lower is better) and entropy (higher is better) against the guidance scale <span class="m">w</span>; the main result uses <span class="m">w</span> = 2.75, and <span class="m">w</span> = 1 is no guidance.</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<section class="section section-alt" id="cite">
+  <div class="container narrow">
+    <p class="kicker">Citation</p>
+    <h2>BibTeX</h2>
+    <div class="bibtex-box">
+      <pre id="bibtex"></pre>
+      <button type="button" class="copy" id="copy-bibtex">Copy</button>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <p>Sudoku follows the data of Shah et al. (2024) and the protocol of Kim et al. (2025); Countdown follows Ye et al. (2024); LM1B is the One Billion Word benchmark.</p>
+  </div>
+</footer>
+
+<script src="config.js"></script>
+<script src="main.js"></script>
+<script src="demo.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"
+  onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}]});"></script>
+</body>
+</html>

@@ -14,7 +14,7 @@
   const authors = document.getElementById("authors");
   site.authors.forEach((a, i) => {
     const label = stripTodo(a.name) + (a.equal ? "*" : "");
-    const name = a.url ? el("a", { href: a.url }, [label]) : el("span", {}, [label]);
+    const name = a.url ? el("a", { href: a.url, target: "_blank", rel: "noopener noreferrer" }, [label]) : el("span", {}, [label]);
     if (isTodo(a.name)) name.classList.add("todo");
     authors.append(name, el("sup", {}, [a.affil.join(",")]));
     if (i < site.authors.length - 1) authors.append(", ");
@@ -38,9 +38,15 @@
   const links = document.getElementById("links");
   Object.entries(site.links).forEach(([key, url]) => {
     if (!url) return;
-    const a = el("a", { class: "btn", href: isTodo(url) ? "#" : url });
+    const todo = isTodo(url);
+    const a = el("a", {
+      class: "btn",
+      href: todo ? "#" : url,
+      target: todo ? null : "_blank",
+      rel: todo ? null : "noopener noreferrer",
+    });
     a.innerHTML = icons[key] + " " + labels[key];
-    if (isTodo(url)) { a.classList.add("todo-link"); a.title = "Link not set yet: edit config.js"; }
+    if (todo) { a.classList.add("todo-link"); a.title = "Link not set yet: edit config.js"; }
     links.append(a);
   });
 

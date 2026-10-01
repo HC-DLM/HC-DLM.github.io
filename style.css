@@ -266,12 +266,18 @@ table.compare.families th, table.compare.families td { text-align: left; vertica
 table.compare.families thead th { text-align: center; vertical-align: top; font-size: 1rem; }
 table.compare.families thead th.ours { color: var(--accent); }
 table.compare.families .eg { display: block; margin-top: 0.15rem; font-size: 0.8rem; font-weight: 400; color: var(--muted); }
-table.compare.families tbody th { width: 30%; }
+table.compare.families { min-width: 760px; }
+table.compare.families tbody th { width: 24%; padding-right: 1.25rem; }
+table.compare.families tbody th .sub { display: block; margin-top: 0.2rem; font-size: 0.8rem; font-weight: 400; color: var(--muted); }
+table.compare.families td { width: 19%; padding: 1rem 0.9rem; }
+table.compare.families td .note { display: block; margin-top: 0.3rem; font-size: 0.78rem; line-height: 1.4; color: var(--muted); }
+table.compare.families td.ours .note { color: var(--ink-soft); }
 table.compare.families td.ours, table.compare.families th.ours { background: var(--accent-soft); }
 table.compare.families td.ours { color: var(--ink); }
 table.compare.families td, table.compare.families tbody th { vertical-align: middle; }
 table.compare.families td { text-align: center; }
-table.compare.families td .mark { display: block; font-size: 1.35rem; line-height: 1.2; font-weight: 700; }
+table.compare.families td .mark { display: block; font-size: 1.25rem; line-height: 1.2; font-weight: 700; }
+.mark.part { color: #c98a00; }
 
 .mark.no { color: #b7bac0; }
 .mark.yes { color: #2f9e5f; font-weight: 700; }

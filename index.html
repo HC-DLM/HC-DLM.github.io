@@ -200,10 +200,35 @@
 
     <div class="table-wrap">
       <table class="compare families">
-        <thead><tr><th scope="col"></th><th scope="col">Discrete diffusion<span class="eg">e.g. MDM, LLaDA</span></th><th scope="col">Continuous diffusion<span class="eg">e.g. Diffusion-LM, Plaid</span></th><th scope="col" class="ours">HC-DLM (ours)</th></tr></thead>
+        <thead><tr>
+          <th scope="col"></th>
+          <th scope="col">Discrete diffusion<span class="eg">e.g. MDM, LLaDA</span></th>
+          <th scope="col">Continuous diffusion<span class="eg">e.g. Diffusion-LM, Plaid</span></th>
+          <th scope="col">Hybrid discrete&ndash;continuous<span class="eg">e.g. CADD, CCDD</span></th>
+          <th scope="col" class="ours">HC-DLM (ours)</th>
+        </tr></thead>
         <tbody>
-          <tr><th scope="row">Dependence among tokens decoded in parallel</th><td><span class="mark no">✕</span></td><td><span class="mark yes">✓</span></td><td class="ours"><span class="mark yes">✓</span></td></tr>
-          <tr><th scope="row">Tied to tokens at every step</th><td><span class="mark yes">✓</span></td><td><span class="mark no">✕</span></td><td class="ours"><span class="mark yes">✓</span></td></tr>
+          <tr>
+            <th scope="row">Token dependence within a step</th>
+            <td><span class="mark no">&#x2715;</span><span class="note">independent marginals</span></td>
+            <td><span class="mark yes">&#x2713;</span></td>
+            <td><span class="mark part">&#x25D0;</span><span class="note">via conditioning only</span></td>
+            <td class="ours"><span class="mark yes">&#x2713;</span></td>
+          </tr>
+          <tr>
+            <th scope="row">Tied to tokens at every step</th>
+            <td><span class="mark yes">&#x2713;</span></td>
+            <td><span class="mark no">&#x2715;</span><span class="note">only at <i>t</i>&thinsp;=&thinsp;0</span></td>
+            <td><span class="mark yes">&#x2713;</span></td>
+            <td class="ours"><span class="mark yes">&#x2713;</span></td>
+          </tr>
+          <tr>
+            <th scope="row">Tokens revisable at every step</th>
+            <td><span class="mark part">&#x25D0;</span><span class="note">uniform kernel only</span></td>
+            <td><span class="mark yes">&#x2713;</span></td>
+            <td><span class="mark part">&#x25D0;</span><span class="note">uniform kernel only</span></td>
+            <td class="ours"><span class="mark yes">&#x2713;</span><span class="note">readout from <i>x<sub>t</sub></i></span></td>
+          </tr>
         </tbody>
       </table>
     </div>

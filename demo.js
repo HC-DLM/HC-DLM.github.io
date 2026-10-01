@@ -1,7 +1,7 @@
 // Scripted illustration of the HC-DLM sampler on one sentence. Not model output.
-// Each step has two phases, in sync with the diagram: (1) read out: the tokens k_t are read out of
-// the latent x_t; at level t a fraction t/T of positions is still noise (hatched). (2) feed back:
-// k_t conditions the latent update, and the latent's hatching thins to level t-1.
+// At the start of each step the latent x_t and the tokens k_t switch to level t together; at level t a
+// fraction t/T of positions is still noise (hatched). The diagram then draws the read-out arrow and,
+// after a pause, the feed-back arrow into the next latent update.
 (function () {
   const T = 4;
   // Read-out per step, t = 4 (pure noise) down to 0. Hand-written so revisions are visible:
@@ -19,10 +19,15 @@
   const showRevision = { 2: [4], 3: [1, 9] };
   // Playback speed. Every timing below and every animation in style.css (via --speed) divides by it.
   const SPEED = 2.5;
-  const readMs = 1800 / SPEED;   // read-out shown alone before the feed-back starts
-  const stepMs = 4000 / SPEED;
+  // One beat = the time an arrow takes to draw. A step is three equal beats: the read-out arrow draws,
+  // the feed-back arrow draws, then a pause; x_t and k_t change once per step, as the next read-out starts.
+  const beatMs = 900 / SPEED;
+  const readMs = beatMs;         // feed-back starts when the read-out arrow is complete
+  const stepMs = 3 * beatMs;
   const holdMs = 3500 / SPEED;   // pause on the finished sentence before restarting
-  document.getElementById("demo").style.setProperty("--speed", SPEED);
+  const demoEl = document.getElementById("demo");
+  demoEl.style.setProperty("--speed", SPEED);
+  demoEl.style.setProperty("--beat", beatMs + "ms");
 
   // Deterministic pseudo-random stream so every replay is identical.
   const rng = (seed) => () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
@@ -54,11 +59,11 @@
   const restartBtn = document.getElementById("demo-restart");
 
   // Latent box: diagonal hatching like the diagram, evenly spaced at every level.
-  // Line spacing (px) per level t; it widens clearly from step to step. Levels cross-fade.
+  // Line spacing (px) per level t; it widens clearly from step to step and switches at once, like the tokens.
   const NS = "http://www.w3.org/2000/svg";
   const latentSvg = latentEl.querySelector("svg");
   const gapAt = { 4: 6, 3: 11, 2: 19, 1: 34 };
-  let level = 1, layer = null;
+  let level = 1;
   function hatchLayer(s) {
     const g = document.createElementNS(NS, "g");
     if (s <= 0) return g;
@@ -71,25 +76,12 @@
     }
     return g;
   }
-  function setLatent(s, instant) {
+  function setLatent(s) {
     level = s;
-    latentEl.classList.toggle("instant", !!instant);
     latentSvg.setAttribute("viewBox", `0 0 ${latentEl.clientWidth} ${latentEl.clientHeight}`);
-    const next = hatchLayer(s);
-    if (instant || !layer) {
-      latentSvg.replaceChildren(next);
-    } else {
-      const old = layer;
-      next.style.opacity = 0;
-      latentSvg.append(next);
-      void next.getBoundingClientRect();
-      next.style.opacity = 0.75; old.style.opacity = 0;
-      setTimeout(() => old.remove(), 1000 / SPEED);
-    }
-    next.style.opacity = 0.75;
-    layer = next;
+    latentSvg.replaceChildren(hatchLayer(s));
   }
-  function buildLatent() { setLatent(level, true); }
+  function buildLatent() { setLatent(level); }
 
   function renderTokens(t) {
     tokensEl.replaceChildren(...K[T - t].map((k, i) => {
@@ -108,12 +100,12 @@
   const diagram = document.querySelector(".chain");
   const live = diagram.querySelector(".live");
 
-  function showRead(instant) {
+  function showRead() {
     diagram.dataset.phase = t === 0 ? "final" : "step";
     live.classList.remove("go-read", "go-feed");
     void live.getBoundingClientRect();  // restart the one-shot animations
     live.classList.add("go-read");
-    setLatent(t / T, instant);
+    setLatent(t / T);
     renderTokens(t);
     tOut.value = (t / T).toFixed(2);
     range.value = String(t);
@@ -121,29 +113,28 @@
   function showFeed() {
     if (t === 0) return;
     live.classList.add("go-feed");
-    setLatent((t - 1) / T, false);
   }
   function clear() { timers.forEach(clearTimeout); timers = []; }
   function schedule() {
     clear();
     if (!playing) return;
     if (t > 0) timers.push(setTimeout(showFeed, readMs));
-    timers.push(setTimeout(() => { t = t === 0 ? T : t - 1; showRead(t === T); schedule(); }, t === 0 ? holdMs : stepMs));
+    timers.push(setTimeout(() => { t = t === 0 ? T : t - 1; showRead(); schedule(); }, t === 0 ? holdMs : stepMs));
   }
   playBtn.addEventListener("click", () => {
     playing = !playing;
     playBtn.textContent = playing ? "Pause" : "Play";
     playBtn.setAttribute("aria-label", playBtn.textContent);
-    if (playing) { showRead(true); schedule(); } else clear();
+    if (playing) { showRead(); schedule(); } else clear();
   });
-  restartBtn.addEventListener("click", () => { t = T; showRead(true); schedule(); });
-  range.addEventListener("input", () => { t = Number(range.value); showRead(true); schedule(); });
+  restartBtn.addEventListener("click", () => { t = T; showRead(); schedule(); });
+  range.addEventListener("input", () => { t = Number(range.value); showRead(); schedule(); });
   window.addEventListener("resize", buildLatent);
 
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
     playing = false; playBtn.textContent = "Play"; t = 2;
   }
   buildLatent();
-  showRead(true);
+  showRead();
   schedule();
 })();

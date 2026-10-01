@@ -1,8 +1,8 @@
-/* Light, sans-serif project page. Accent (wine) marks headings, numbers and our rows; blue marks the latent; --feed marks feed-back. */
+/* Light, sans-serif project page. Accent (coral) marks the token readout and our rows; blue marks the latent. */
 :root {
-  --accent: #8c1d3c;
-  --accent-soft: #f5ebed;
-  --accent-line: #e1c4cc;
+  --accent: #d1553c;
+  --accent-soft: #fdeeea;
+  --accent-line: #f3cfc6;
   --feed: #b5533c;          /* feed-back arrows, as in the paper figures */
   --blue: #2f66b3;
   --blue-soft: #e6eef9;
@@ -146,8 +146,7 @@ a { color: var(--ink); text-decoration-thickness: 1px; text-underline-offset: 0.
 .latent-box { position: relative; height: 2.364rem; border-radius: 10px; border: 1px solid var(--blue); background: linear-gradient(90deg, #cfe0f7, #e6eef9); overflow: hidden; }
 .demo .latent-box svg { position: absolute; inset: 0; width: 100%; height: 100%; min-width: 0; display: block; }
 .latent-box line { stroke: #1f3350; stroke-width: 2.2; }
-.latent-box g { transition: opacity calc(900ms / var(--speed, 1)) ease; }
-.latent-box.instant g { transition: none; }
+.latent-box g { opacity: 0.75; }
 .token-row { display: flex; flex-wrap: wrap; gap: 0.3636rem; min-height: 2.182rem; align-items: center; }
 .tok { text-align: center; font-family: var(--mono); font-size: 0.8636rem; padding: 0.2909rem 0.5455rem; border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--ink); line-height: 1.2; transition: background-color 500ms ease, color 500ms ease, border-color 500ms ease; }
 .tok.settled { border-color: #cfd3d9; font-weight: 500; }
@@ -197,10 +196,10 @@ a { color: var(--ink); text-decoration-thickness: 1px; text-underline-offset: 0.
 .chain .kernels { opacity: 0.8; }
 .chain .live .draw { stroke-dasharray: 1; stroke-dashoffset: 1; opacity: 0; }
 /* demo.js adds .go-read at the start of a step and .go-feed once the read-out has been shown. */
-.chain .live.go-read .a-read-t { animation: draw-once calc(900ms / var(--speed, 1)) ease-out forwards; }
-.chain .live.go-feed .a-feed-t, .chain .live.go-feed .a-chain-t { animation: draw-once calc(900ms / var(--speed, 1)) ease-out forwards; }
+.chain .live.go-read .a-read-t { animation: draw-once var(--beat, 900ms) ease-out forwards; }
+.chain .live.go-feed .a-feed-t, .chain .live.go-feed .a-chain-t { animation: draw-once var(--beat, 900ms) ease-out forwards; }
 .chain[data-phase="final"] .live .a-read-t { animation: none; }
-.chain[data-phase="final"] .live.go-read .a-read-0 { animation: draw-once calc(900ms / var(--speed, 1)) ease-out forwards; }
+.chain[data-phase="final"] .live.go-read .a-read-0 { animation: draw-once var(--beat, 900ms) ease-out forwards; }
 @keyframes draw-once { from { stroke-dashoffset: 1; opacity: 1; } to { stroke-dashoffset: 0; opacity: 1; } }
 /* Flash the label of the latent an update lands on: x_{t-1} at feed-back, x_0 at the final read-out. */
 .chain .latents text { transform-box: fill-box; transform-origin: center; paint-order: stroke; stroke: rgba(255, 255, 255, 0.9); stroke-width: 5px; stroke-linejoin: round; }

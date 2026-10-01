@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>HC-DLM — Hierarchical Continuous Diffusion Language Models</title>
-<meta name="description" content="HC-DLM: a diffusion language model whose reverse process is a two-level chain. A continuous latent is the only persistent state; tokens are read out from it at every step and fed back as a scaffold for the next latent update.">
+<meta name="description" content="HC-DLM augments continuous diffusion language models with discrete token guidance: a shared latent plans every token jointly, while tokens read out at each step keep it anchored to valid text.">
 <meta property="og:title" content="Hierarchical Continuous Diffusion Language Models">
-<meta property="og:description" content="Tokens read out of a continuous latent at every step and fed back into its denoiser, trained from a single variational bound.">
+<meta property="og:description" content="Augmenting continuous diffusion language models with discrete token guidance: plan jointly in latent space, stay anchored to tokens at every step.">
 <meta property="og:image" content="assets/pipeline_inference_v2.webp">
 <meta property="og:type" content="article">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -33,7 +33,7 @@
 <header class="hero" id="top">
   <div class="hero-inner">
     <h1 class="publication-title"><span class="ac">H</span>ierarchical <span class="ac">C</span>ontinuous <span class="ac">D</span>iffusion <span class="ac">L</span>anguage <span class="ac">M</span>odels</h1>
-    <p class="subtitle">A continuous latent is the only state that persists across denoising steps. Tokens are read out of it at every step and fed back as the scaffold for the next latent update.</p>
+    <p class="subtitle">Augmenting Continuous Diffusion Language Models with Discrete Token Guidance</p>
     <p class="authors" id="authors"></p>
     <p class="affils" id="affils"></p>
     <nav class="links" id="links" aria-label="Paper resources"></nav>
@@ -43,7 +43,7 @@
     <div class="demo-head">
       <div>
         <p class="demo-kicker">How HC-DLM samples · simulated example</p>
-        <h2 class="demo-title">Only the latent persists; tokens are read out and fed back at every step</h2>
+        <h2 class="demo-title">The latent plans, the tokens guide, at every step</h2>
       </div>
       <div class="demo-controls">
         <button type="button" class="ctl" id="demo-play" aria-label="Pause">Pause</button>
@@ -160,7 +160,7 @@
 <section class="section" id="abstract">
   <div class="container narrow">
     <p class="kicker">Abstract</p>
-    <h2>Two weaknesses, one remedy</h2>
+    <h2>Two complementary gaps, closed together</h2>
     <div class="prose">
       <p>Discrete diffusion language models offer a compelling alternative to autoregressive generation for tasks demanding bidirectional reasoning and global constraint satisfaction. Yet they share a structural bottleneck: when decoding in parallel, each token is sampled independently from its marginal, severing the statistical dependencies among the tokens decoded together. Continuous diffusion language models avoid this by denoising a shared continuous state, but their denoiser sees only that state, so nothing ties it to a valid token configuration until it is finally decoded.</p>
       <p>To address this, we propose <strong>Hierarchical Continuous Diffusion Language Models (HC-DLM)</strong>, which couple discrete token generation with a continuous latent trajectory in a single, principled denoising process, whose training objective is derived from a variational bound on the token likelihood. In contrast to recent methods that attach continuous context to a self-contained discrete chain, HC-DLM makes <strong>the latent the only persistent generative state</strong>: tokens are read out from it at every step and feed back as a scaffold for the next latent update.</p>
@@ -172,16 +172,16 @@
 <section class="section section-alt" id="method">
   <div class="container narrow">
     <p class="kicker">Method</p>
-    <h2>One latent chain, tokens read out at every step</h2>
-    <p class="lead">The two forward kernels are independent, so both marginals stay tractable. The reverse chain breaks the symmetry: the token predictor reads <span class="m">k<sub>t</sub></span> out of <span class="m">x<sub>t</sub></span>, and the denoiser advances the latent conditioned on that scaffold.</p>
+    <h2>Continuous planning, discrete guidance</h2>
+    <p class="lead">Noise corrupts tokens and latent independently, so training stays simple. Generation is where the two meet: at every step the model reads a token draft <span class="m">k<sub>t</sub></span> out of the latent <span class="m">x<sub>t</sub></span>, and that draft guides the next latent update.</p>
     <div class="equation">
-      $$p_{\theta,\phi}(k_{0:T},\,x_{0:T}) \;=\; p(x_T)\;p_\theta(k_0\mid x_0)\prod_{t=1}^{T} \underbrace{p_\theta(k_t\mid x_t)}_{\text{token readout}}\;\;\underbrace{p_\phi(x_{t-1}\mid x_t,\,k_t)}_{\substack{\text{scaffold-conditioned}\\ \text{denoising}}}$$
+      $$p_{\theta,\phi}(k_{0:T},\,x_{0:T}) \;=\; p(x_T)\;p_\theta(k_0\mid x_0)\prod_{t=1}^{T} \underbrace{p_\theta(k_t\mid x_t)}_{\text{read out tokens}}\;\;\underbrace{p_\phi(x_{t-1}\mid x_t,\,k_t)}_{\substack{\text{token-guided}\\ \text{latent denoising}}}$$
     </div>
   </div>
   <div class="container">
     <figure class="figure framed">
       <img src="assets/pipeline_train_v2.webp" alt="Training pipeline. An encoder maps clean tokens k_0 to a latent x_0. Independent forward kernels produce the noisy pair (x_t, k_t). The token-conditioned denoiser predicts the clean latent (loss J_cont), the token predictor decodes x_0 to tokens (loss J_recon), and the encoder is regularized by an entropy term J_ent." width="2400" height="906">
-      <figcaption><strong>Training from a single variational bound.</strong> The ELBO over the two-level trajectory separates into a reconstruction term for the token predictor, a token-conditioned continuous denoising term implemented with flow matching, and an entropy term that keeps the encoder non-degenerate.</figcaption>
+      <figcaption><strong>One principled objective, trained end to end.</strong> A single variational bound on the token likelihood splits into three terms: reconstruction for the token readout, token-guided flow matching for the latent denoiser, and an entropy term that keeps the encoder from collapsing.</figcaption>
     </figure>
   </div>
 </section>
@@ -189,13 +189,13 @@
 <section class="section" id="novelty">
   <div class="container narrow">
     <p class="kicker">What is new</p>
-    <h2>Each level fixes the other&rsquo;s weakness</h2>
-    <p class="lead">Discrete diffusion decodes the tokens of one step <strong>independently</strong>. Continuous diffusion gives them a shared state, but its denoiser <strong>never sees a token</strong> until the final decoding. HC-DLM reads tokens out of a shared latent at every step and feeds them back into the next latent update.</p>
+    <h2>Each level covers the other&rsquo;s blind spot</h2>
+    <p class="lead">Discrete diffusion decodes tokens in parallel, but samples each one <strong>independently</strong>. Continuous diffusion plans all tokens in one shared latent, but <strong>never checks that plan against real tokens</strong> until the very end. HC-DLM keeps both strengths: tokens are planned jointly in the latent, and the latent is guided by tokens at every step.</p>
   </div>
   <div class="container">
     <figure class="figure framed">
       <img src="assets/comparison2.png" alt="Three reverse-step diagrams. (a) Discrete diffusion: tokens k_t go to k_{t-1} through a learned predictor, with no latent. (b) Continuous diffusion: the latent x_t goes to x_{t-1} through p_phi(x_{t-1} | x_t); tokens are decoded only at t = 0. (c) HC-DLM: tokens are read out of x_t by p_theta and condition the latent update p_phi(x_{t-1} | x_t, k_t)." width="3477" height="708">
-      <figcaption><strong>One reverse step, three designs.</strong> Discrete diffusion updates the tokens directly. Continuous diffusion updates a latent whose denoiser sees only the latent, and decodes tokens at the end. HC-DLM reads tokens out of the latent at every step and feeds them into the next latent update.</figcaption>
+      <figcaption><strong>One reverse step, three designs.</strong> Discrete diffusion updates tokens directly, one marginal at a time. Continuous diffusion denoises a latent that is blind to tokens and decodes only at the end. In HC-DLM the two levels talk at every step: tokens are read out of the latent, then guide its next update.</figcaption>
     </figure>
 
     <div class="table-wrap">
@@ -213,8 +213,8 @@
 <section class="section section-alt" id="results">
   <div class="container narrow">
     <p class="kicker">Results</p>
-    <h2>Three tasks, one consistent picture</h2>
-    <p class="lead">Structured reasoning, mathematical planning and language modeling, against autoregressive, discrete, continuous and hybrid diffusion baselines at matched model size. Parameter counts exclude token embeddings.</p>
+    <h2>Gains on reasoning, planning and language</h2>
+    <p class="lead">From Sudoku and Countdown to open-domain text, HC-DLM leads discrete, continuous and hybrid diffusion baselines of the same size on Hard Sudoku, Countdown and LM1B. Parameter counts exclude token embeddings.</p>
   </div>
   <div class="container">
     <div class="finding-grid">
@@ -227,9 +227,9 @@
           <div class="bar-row ours"><span class="bar-label">HC-DLM</span><span class="bar"><i style="--v:72.41"></i></span><span class="bar-val">72.41</span></div>
           <div class="bar-row"><span class="bar-label">CCDD</span><span class="bar"><i style="--v:70.73"></i></span><span class="bar-val">70.73</span></div>
           <div class="bar-row"><span class="bar-label">MDM (top-prob. margin)</span><span class="bar"><i style="--v:49.88"></i></span><span class="bar-val">49.88</span></div>
-          <div class="bar-row"><span class="bar-label">Latent DM (no scaffold)</span><span class="bar"><i style="--v:24.74"></i></span><span class="bar-val">24.74</span></div>
+          <div class="bar-row"><span class="bar-label">Latent DM (no token guidance)</span><span class="bar"><i style="--v:24.74"></i></span><span class="bar-val">24.74</span></div>
         </div>
-        <p>Hard puzzles need a strategy outside the seven seen in training. On Easy, HC-DLM also surpasses the best masked-diffusion variant and a 42M autoregressive model.</p>
+        <p>Hard puzzles require solving strategies never seen in training, which is where globally consistent decoding pays off. A 7&times; larger autoregressive model reaches only 32.57% here.</p>
       </article>
       <article class="finding">
         <span class="tag">Countdown · Planning</span>
@@ -242,7 +242,7 @@
           <div class="bar-row"><span class="bar-label">MDM (top-prob.)</span><span class="bar"><i style="--v:21.4"></i></span><span class="bar-val">21.4</span></div>
           <div class="bar-row"><span class="bar-label">MDM (top-prob. margin)</span><span class="bar"><i style="--v:21.3"></i></span><span class="bar-val">21.3</span></div>
         </div>
-        <p>Best result at the 6M scale on both CD4 and CD5, and the margin over CCDD widens from CD4 to the longer-horizon CD5.</p>
+        <p>Best at the 6M scale on both CD4 and CD5, and the lead grows with the planning horizon: +3.2 over CCDD on CD4, +12.2 on CD5.</p>
       </article>
       <article class="finding">
         <span class="tag">LM1B · Language</span>
@@ -256,7 +256,7 @@
           <div class="bar-row"><span class="bar-label">Duo</span><span class="bar"><i style="--v:97.6"></i></span><span class="bar-val">97.6</span></div>
           <div class="bar-row"><span class="bar-label">MDM</span><span class="bar"><i style="--v:103.9"></i></span><span class="bar-val">103.9</span></div>
         </div>
-        <p>Best among the evaluated diffusion models: below every discrete baseline and both continuous models that decode only once at the end.</p>
+        <p>Lowest generative perplexity among all diffusion models evaluated, ahead of every discrete baseline and both continuous models that wait until the end to decode.</p>
       </article>
     </div>
 
@@ -334,18 +334,18 @@
 <section class="section" id="ablation">
   <div class="container narrow">
     <p class="kicker">Ablations</p>
-    <h2>Both levels are needed</h2>
-    <p class="lead">Remove the token level and a standard latent diffusion model remains; remove the latent level and a purely discrete chain remains. Each falls well short of the full model, most on the Hard split where global constraints matter. Tables and the first two plots report Sudoku accuracy (%).</p>
+    <h2>Neither level works alone</h2>
+    <p class="lead">Drop the token guidance and you are left with a plain latent diffusion model; drop the latent and you are left with a purely discrete chain. Both fall far behind the full model, most of all on Hard Sudoku, where global constraints bite. Tables and the first two plots report Sudoku accuracy (%).</p>
   </div>
   <div class="container">
     <div class="tables tables-2">
       <figure class="figure table-card">
-        <figcaption><strong>Component ablation.</strong> Latent DM drops <span class="m">k<sub>t</sub></span> from the denoiser; MDM drops the latent altogether.</figcaption>
+        <figcaption><strong>Component ablation.</strong> Latent DM removes token guidance from the denoiser; MDM removes the latent altogether.</figcaption>
         <table class="results">
-          <thead><tr><th scope="col">Method</th><th scope="col">Cont. latent</th><th scope="col">Disc. cond.</th><th scope="col">Easy</th><th scope="col">Hard</th></tr></thead>
+          <thead><tr><th scope="col">Method</th><th scope="col">Cont. latent</th><th scope="col">Token guidance</th><th scope="col">Easy</th><th scope="col">Hard</th></tr></thead>
           <tbody>
             <tr><th scope="row">MDM (top-prob. margin)</th><td class="mark no">✕</td><td class="mark no">✕</td><td>89.49</td><td>49.88</td></tr>
-            <tr><th scope="row">Latent DM (w/o disc. cond.)</th><td class="mark yes">✓</td><td class="mark no">✕</td><td>50.46</td><td>24.74</td></tr>
+            <tr><th scope="row">Latent DM (w/o token guidance)</th><td class="mark yes">✓</td><td class="mark no">✕</td><td>50.46</td><td>24.74</td></tr>
             <tr class="ours"><th scope="row">HC-DLM (ours)</th><td class="mark yes">✓</td><td class="mark yes">✓</td><td class="best">94.21</td><td class="best">72.41</td></tr>
           </tbody>
         </table>
@@ -366,15 +366,15 @@
     <div class="panels">
       <figure class="figure panel">
         <img src="assets/trajectory_accuracy.webp" alt="Line chart of Sudoku accuracy of the decoded intermediate prediction against normalized step t/T. HC-DLM rises from about 20% to above 90% by t/T = 0.6; the latent diffusion model without discrete conditioning rises late and plateaus near 57%." width="1800" height="1500">
-        <figcaption><strong>Information emerges earlier.</strong> Accuracy of the intermediate prediction <span class="m">x̂<sub class="num">0</sub></span> decoded at each step.</figcaption>
+        <figcaption><strong>Solutions emerge early.</strong> Accuracy of the intermediate prediction <span class="m">x̂<sub class="num">0</sub></span> decoded at each step.</figcaption>
       </figure>
       <figure class="figure panel">
         <img src="assets/denoising_steps.webp" alt="Line chart of Hard Sudoku accuracy against the number of denoising steps from 10 to 100. HC-DLM stays between 52% and 76%; MDM falls from 56% to 20% as steps decrease." width="1800" height="1500">
-        <figcaption><strong>Robust to fewer steps.</strong> Hard Sudoku accuracy against step count.</figcaption>
+        <figcaption><strong>Holds up with fewer steps.</strong> Hard Sudoku accuracy against step count; MDM degrades sharply as steps shrink.</figcaption>
       </figure>
       <figure class="figure panel">
         <img src="assets/lm1b_cfg.webp" alt="Line chart of LM1B generative perplexity and entropy against the classifier-free guidance scale w from 1 to 5. Perplexity falls from about 129 at w = 1 to a minimum near 71 around w = 3.5 and rises slightly after; entropy stays between 4.0 and 4.3 throughout." width="1740" height="1350">
-        <figcaption><strong>Guidance on the token channel.</strong> LM1B generative perplexity (lower is better) and entropy (higher is better) against the guidance scale <span class="m">w</span>; the main result uses <span class="m">w</span> = 2.75, and <span class="m">w</span> = 1 is no guidance.</figcaption>
+        <figcaption><strong>Tunable token guidance.</strong> Stronger classifier-free guidance sharply cuts LM1B perplexity while entropy holds steady.</figcaption>
       </figure>
     </div>
   </div>

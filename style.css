@@ -150,7 +150,7 @@ a { color: var(--ink); text-decoration-thickness: 1px; text-underline-offset: 0.
 .token-row { display: flex; flex-wrap: wrap; gap: 0.3636rem; min-height: 2.182rem; align-items: center; }
 .tok { text-align: center; font-family: var(--mono); font-size: 0.8636rem; padding: 0.2909rem 0.5455rem; border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--ink); line-height: 1.2; transition: background-color 500ms ease, color 500ms ease, border-color 500ms ease; }
 .tok.settled { border-color: #cfd3d9; font-weight: 500; }
-.tok.changed { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); animation: flash calc(1200ms / var(--speed, 1)) ease-out; }
+.tok.changed { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); animation: flash calc(var(--arrow, 700ms) * 1.3) ease-out; }
 .tok.noised { color: var(--muted); background: repeating-linear-gradient(45deg, #ededf0 0 3px, #f8f8f9 3px 7px); border-style: dashed; }
 @keyframes flash { 0% { background: var(--accent-soft); } 100% { background: var(--card); } }
 .demo-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3636rem 1.136rem; margin-top: 0.8182rem; padding-top: 0.6818rem; border-top: 1px solid var(--line); font-size: 0.7273rem; color: var(--ink-soft); }
@@ -196,20 +196,20 @@ a { color: var(--ink); text-decoration-thickness: 1px; text-underline-offset: 0.
 .chain .kernels { opacity: 0.8; }
 .chain .live .draw { stroke-dasharray: 1; stroke-dashoffset: 1; opacity: 0; }
 /* demo.js adds .go-read at the start of a step and .go-feed once the read-out has been shown. */
-.chain .live.go-read .a-read-t { animation: draw-once var(--beat, 900ms) ease-out forwards; }
-.chain .live.go-feed .a-feed-t, .chain .live.go-feed .a-chain-t { animation: draw-once var(--beat, 900ms) ease-out forwards; }
+.chain .live.go-read .a-read-t { animation: draw-once var(--arrow, 700ms) ease-out forwards; }
+.chain .live.go-feed .a-feed-t, .chain .live.go-feed .a-chain-t { animation: draw-once var(--arrow, 700ms) ease-out forwards; }
 .chain[data-phase="final"] .live .a-read-t { animation: none; }
-.chain[data-phase="final"] .live.go-read .a-read-0 { animation: draw-once var(--beat, 900ms) ease-out forwards; }
+.chain[data-phase="final"] .live.go-read .a-read-0 { animation: draw-once var(--arrow, 700ms) ease-out forwards; }
 @keyframes draw-once { from { stroke-dashoffset: 1; opacity: 1; } to { stroke-dashoffset: 0; opacity: 1; } }
 /* Flash the label of the latent an update lands on: x_{t-1} at feed-back, x_0 at the final read-out. */
 .chain .latents text { transform-box: fill-box; transform-origin: center; paint-order: stroke; stroke: rgba(255, 255, 255, 0.9); stroke-width: 5px; stroke-linejoin: round; }
 .chain .live.go-feed ~ .latents .p-t1 text,
-.chain[data-phase="final"] .live.go-read ~ .latents .p-0 text { animation: fl-text calc(1400ms / var(--speed, 1)) ease-out; }
+.chain[data-phase="final"] .live.go-read ~ .latents .p-0 text { animation: fl-text calc(var(--arrow, 700ms) * 1.5) ease-out; }
 @keyframes fl-text { 0%, 100% { fill: var(--ink); } 15%, 55% { fill: var(--accent); } }
 .chain .pop { transform-box: fill-box; transform-origin: center; }
-.chain .live.go-read ~ .tokens .k-t { animation: pop-once calc(1000ms / var(--speed, 1)) ease-out calc(300ms / var(--speed, 1)) both; }
+.chain .live.go-read ~ .tokens .k-t { animation: pop-once var(--arrow, 700ms) ease-out calc(var(--arrow, 700ms) / 3) both; }
 .chain[data-phase="final"] .live.go-read ~ .tokens .k-t { animation: none; }
-.chain[data-phase="final"] .live.go-read ~ .tokens .k-0 { animation: pop-once calc(1000ms / var(--speed, 1)) ease-out calc(300ms / var(--speed, 1)) both; }
+.chain[data-phase="final"] .live.go-read ~ .tokens .k-0 { animation: pop-once var(--arrow, 700ms) ease-out calc(var(--arrow, 700ms) / 3) both; }
 @keyframes pop-once { 0% { opacity: 0.35; transform: scale(0.94); } 100% { opacity: 1; transform: scale(1); } }
 @media (prefers-reduced-motion: reduce) {
   .chain .live .draw, .chain .latents rect, .chain .latents text, .chain .pop { animation: none !important; }

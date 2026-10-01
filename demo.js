@@ -17,17 +17,15 @@
   const vocab = ["river", "seven", "kettle", "under", "blue", "paper", "sold", "quiet", "window", "ago", "green", "bridge", "slowly", "coin", "yet", "harbor"];
   // Positions kept out of the noise on purpose so each revision is visible when it happens (step index -> positions).
   const showRevision = { 2: [4], 3: [1, 9] };
-  // Playback speed. Every timing below and every animation in style.css (via --speed) divides by it.
-  const SPEED = 2.5;
-  // One beat = the time an arrow takes to draw. A step is three equal beats: the read-out arrow draws,
-  // the feed-back arrow draws, then a pause; x_t and k_t change once per step, as the next read-out starts.
-  const beatMs = 900 / SPEED;
-  const readMs = beatMs;         // feed-back starts when the read-out arrow is complete
-  const stepMs = 3 * beatMs;
-  const holdMs = 3500 / SPEED;   // pause on the finished sentence before restarting
-  const demoEl = document.getElementById("demo");
-  demoEl.style.setProperty("--speed", SPEED);
-  demoEl.style.setProperty("--beat", beatMs + "ms");
+  // ---- Speed: two independent knobs ----------------------------------------------------------
+  // STEP_MS  (bottom): how often x_t and k_t change, i.e. one denoising step.
+  // ARROW_MS (top):    how long each arrow in the diagram takes to draw. The read-out arrow draws at
+  //                    the start of a step and the feed-back arrow right after it, so keep
+  //                    2 * ARROW_MS <= STEP_MS; whatever is left over is a pause before the next step.
+  const STEP_MS = 800;
+  const ARROW_MS = 350;
+  const HOLD_MS = 1200;  // pause on the finished sentence before restarting
+  document.getElementById("demo").style.setProperty("--arrow", ARROW_MS + "ms");
 
   // Deterministic pseudo-random stream so every replay is identical.
   const rng = (seed) => () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
@@ -118,8 +116,8 @@
   function schedule() {
     clear();
     if (!playing) return;
-    if (t > 0) timers.push(setTimeout(showFeed, readMs));
-    timers.push(setTimeout(() => { t = t === 0 ? T : t - 1; showRead(); schedule(); }, t === 0 ? holdMs : stepMs));
+    if (t > 0) timers.push(setTimeout(showFeed, ARROW_MS));
+    timers.push(setTimeout(() => { t = t === 0 ? T : t - 1; showRead(); schedule(); }, t === 0 ? HOLD_MS : STEP_MS));
   }
   playBtn.addEventListener("click", () => {
     playing = !playing;

@@ -80,7 +80,8 @@ a { color: var(--ink); text-decoration-thickness: 1px; text-underline-offset: 0.
   font-size: clamp(30.4px, 3.6vw, 44px); line-height: 1.16; letter-spacing: -0.022em; font-weight: 800;
   margin: 0 auto 0.8182rem; max-width: 22ch;
 }
-.subtitle { max-width: 66ch; margin: 0 auto 1.727rem; font-size: 0.9818rem; color: var(--ink-soft); line-height: 1.55; }
+.subtitle { max-width: 66ch; margin: 0 auto 1.727rem; font-size: clamp(18px, 1.9vw, 23px); font-weight: 500; color: var(--ink-soft); line-height: 1.4; text-wrap: balance; }
+.subtitle .hl { color: var(--accent); font-weight: 700; white-space: nowrap; background: linear-gradient(transparent 62%, var(--accent-soft) 62%); padding: 0 0.1em; }
 .authors { margin: 0 0 0.5rem; font-size: 0.9273rem; line-height: 1.8; }
 .authors > a, .authors > span { white-space: nowrap; }
 .authors a { text-decoration: none; border-bottom: 1px solid var(--line); }

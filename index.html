@@ -49,17 +49,23 @@
         <button type="button" class="ctl" id="demo-play" aria-label="Pause">Pause</button>
         <button type="button" class="ctl ghost" id="demo-restart">Restart</button>
         <label class="demo-step"><span class="m">t / T</span> = <output id="demo-t">1.00</output></label>
-        <input type="range" id="demo-range" min="0" max="8" value="8" step="1" aria-label="Denoising step">
+        <input type="range" id="demo-range" min="0" max="4" value="4" step="1" aria-label="Denoising step">
       </div>
     </div>
 
     <div class="svg-scroll">
-    <svg class="chain" viewBox="0 0 1200 364" role="img" data-phase="step" aria-labelledby="chain-title chain-desc">
+    <svg class="chain" viewBox="0 0 1200 374" role="img" data-phase="step" aria-labelledby="chain-title chain-desc">
       <title id="chain-title">The HC-DLM reverse process</title>
       <desc id="chain-desc">A continuous latent trajectory from x_T to x_0 runs along the bottom. At each step tokens k_t are read out of the latent x_t, re-noised, and condition the next latent transition to x_{t-1}. Only the latent persists from step to step.</desc>
       <defs>
-        <pattern id="hatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-          <line x1="0" y1="0" x2="0" y2="7" stroke="#3d4a58" stroke-width="1.6"/>
+        <pattern id="hatchD" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+          <line x1="0" y1="0" x2="0" y2="7" stroke="#1f3350" stroke-width="2.2"/>
+        </pattern>
+        <pattern id="hatchM" width="13" height="13" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+          <line x1="0" y1="0" x2="0" y2="13" stroke="#1f3350" stroke-width="2.2"/>
+        </pattern>
+        <pattern id="hatchS" width="24" height="24" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+          <line x1="0" y1="0" x2="0" y2="24" stroke="#1f3350" stroke-width="2.2"/>
         </pattern>
         <linearGradient id="latentFill" x1="0" x2="1">
           <stop offset="0" stop-color="#cfe0f7"/><stop offset="1" stop-color="#e6eef9"/>
@@ -70,87 +76,81 @@
         <marker id="arrowGrey" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#9aa5b1"/></marker>
       </defs>
 
-      <rect x="40" y="188" width="1120" height="146" rx="18" fill="#f2f6fc" stroke="#c9d6ea" stroke-dasharray="6 5"/>
-      <text x="64" y="318" class="svg-label">Latent space</text>
+      <rect x="12" y="186" width="1176" height="178" rx="18" fill="#f2f6fc" stroke="#c9d6ea" stroke-dasharray="6 5"/>
+      <text x="36" y="349" class="svg-label region">Latent space</text>
 
       <g class="faded">
-        <path d="M265 250 H300" class="ln blue" marker-end="url(#arrowBlue)"/>
-        <text x="320" y="256" class="dots ctr">···</text>
-        <path d="M340 250 H372" class="ln blue" marker-end="url(#arrowBlue)"/>
-        <path d="M565 250 H673" class="ln blue" marker-end="url(#arrowBlue)"/>
-        <path d="M865 250 H900" class="ln blue" marker-end="url(#arrowBlue)"/>
-        <text x="920" y="256" class="dots ctr">···</text>
-        <path d="M940 250 H972" class="ln blue" marker-end="url(#arrowBlue)"/>
-        <path d="M170 222 V118" class="ln ink" marker-end="url(#arrowInk)"/>
-        <path d="M470 222 V118" class="ln ink" marker-end="url(#arrowInk)"/>
-        <path d="M770 222 V118" class="ln ink" marker-end="url(#arrowInk)"/>
-        <path d="M1070 222 V118" class="ln ink" marker-end="url(#arrowInk)"/>
-        <path d="M262 108 L400 218" class="ln coral" marker-end="url(#arrowCoral)"/>
-        <path d="M562 108 L700 218" class="ln coral" marker-end="url(#arrowCoral)"/>
-        <path d="M862 108 L1000 218" class="ln coral" marker-end="url(#arrowCoral)"/>
+        <path d="M202 250 H238" class="ln blue" marker-end="url(#arrowBlue)"/>
+        <text x="258" y="256" class="dots ctr">···</text>
+        <path d="M278 250 H318" class="ln blue" marker-end="url(#arrowBlue)"/>
+        <path d="M493 250 H708" class="ln blue" marker-end="url(#arrowBlue)"/>
+        <path d="M883 250 H919" class="ln blue" marker-end="url(#arrowBlue)"/>
+        <text x="939" y="256" class="dots ctr">···</text>
+        <path d="M959 250 H999" class="ln blue" marker-end="url(#arrowBlue)"/>
+        <path d="M115 222 V118" class="ln ink" marker-end="url(#arrowInk)"/>
+        <path d="M406 222 V118" class="ln ink" marker-end="url(#arrowInk)"/>
+        <path d="M796 222 V118" class="ln ink" marker-end="url(#arrowInk)"/>
+        <path d="M1087 222 V118" class="ln ink" marker-end="url(#arrowInk)"/>
+        <path d="M207 108 L346 218" class="ln coral" marker-end="url(#arrowCoral)"/>
+        <path d="M498 108 L736 218" class="ln coral" marker-end="url(#arrowCoral)"/>
+        <path d="M888 108 L1027 218" class="ln coral" marker-end="url(#arrowCoral)"/>
       </g>
       <g class="kernels">
-        <path d="M720 64 C 650 22, 590 22, 522 62" class="ln grey dashed" marker-end="url(#arrowGrey)"/>
-        <path d="M765 288 C 700 324, 540 324, 478 290" class="ln grey dashed" marker-end="url(#arrowGrey)"/>
+        <path d="M746 64 C 672 16, 530 16, 458 62" class="ln grey dashed" marker-end="url(#arrowGrey)"/>
+        <path d="M796 288 C 720 326, 490 326, 414 290" class="ln grey dashed" marker-end="url(#arrowGrey)"/>
       </g>
 
       <g class="live">
-        <path d="M470 222 V118" class="ln ink draw a-read-t" pathLength="1" marker-end="url(#arrowInk)"/>
-        <path d="M562 108 L700 218" class="ln coral draw a-feed-t" pathLength="1" marker-end="url(#arrowCoral)"/>
-        <path d="M565 250 H673" class="ln blue draw a-chain-t" pathLength="1" marker-end="url(#arrowBlue)"/>
-        <path d="M1070 222 V118" class="ln ink draw a-read-0" pathLength="1" marker-end="url(#arrowInk)"/>
+        <path d="M406 222 V118" class="ln ink draw a-read-t" pathLength="1" marker-end="url(#arrowInk)"/>
+        <path d="M498 108 L736 218" class="ln coral draw a-feed-t" pathLength="1" marker-end="url(#arrowCoral)"/>
+        <path d="M493 250 H708" class="ln blue draw a-chain-t" pathLength="1" marker-end="url(#arrowBlue)"/>
+        <path d="M1087 222 V118" class="ln ink draw a-read-0" pathLength="1" marker-end="url(#arrowInk)"/>
       </g>
 
       <g class="latents">
-        <g class="latent" transform="translate(75,222)"><rect width="190" height="56" rx="10" fill="url(#latentFill)" stroke="#2f66b3"/><rect width="190" height="56" rx="10" fill="url(#hatch)" opacity="0.55"/><text x="95" y="36" class="math">x<tspan class="sub" dy="6">T</tspan></text></g>
-        <g class="latent pulse p-t" transform="translate(375,222)"><rect width="190" height="56" rx="10" fill="url(#latentFill)" stroke="#2f66b3"/><rect width="190" height="56" rx="10" fill="url(#hatch)" opacity="0.32"/><text x="95" y="36" class="math">x<tspan class="sub" dy="6">t</tspan></text></g>
-        <g class="latent" transform="translate(675,222)"><rect width="190" height="56" rx="10" fill="url(#latentFill)" stroke="#2f66b3"/><rect width="190" height="56" rx="10" fill="url(#hatch)" opacity="0.16"/><text x="95" y="36" class="math">x<tspan class="sub" dy="6">t−1</tspan></text></g>
-        <g class="latent pulse p-0" transform="translate(975,222)"><rect width="190" height="56" rx="10" fill="url(#latentFill)" stroke="#2f66b3"/><text x="95" y="36" class="math">x<tspan class="sub num" dy="6">0</tspan></text></g>
+        <g class="latent" transform="translate(30,222)"><rect width="170" height="56" rx="10" fill="url(#latentFill)" stroke="#2f66b3"/><rect width="170" height="56" rx="10" fill="url(#hatchD)" opacity="0.7"/><text x="85" y="36" class="math">x<tspan class="sub" dy="6">T</tspan></text></g>
+        <g class="latent pulse p-t" transform="translate(321,222)"><rect width="170" height="56" rx="10" fill="url(#latentFill)" stroke="#2f66b3"/><rect width="170" height="56" rx="10" fill="url(#hatchM)" opacity="0.7"/><text x="85" y="36" class="math">x<tspan class="sub" dy="6">t</tspan></text></g>
+        <g class="latent p-t1" transform="translate(711,222)"><rect width="170" height="56" rx="10" fill="url(#latentFill)" stroke="#2f66b3"/><rect width="170" height="56" rx="10" fill="url(#hatchS)" opacity="0.7"/><text x="85" y="36" class="math">x<tspan class="sub" dy="6">t−1</tspan></text></g>
+        <g class="latent pulse p-0" transform="translate(1002,222)"><rect width="170" height="56" rx="10" fill="url(#latentFill)" stroke="#2f66b3"/><text x="85" y="36" class="math">x<tspan class="sub num" dy="6">0</tspan></text></g>
       </g>
 
       <g class="tokens">
-        <g transform="translate(86,74)"><rect width="36" height="36" rx="7" class="tk c1"/><rect x="44" width="36" height="36" rx="7" class="tk c2"/><rect x="88" width="36" height="36" rx="7" class="tk c3"/><rect x="132" width="36" height="36" rx="7" class="tk c4"/><rect width="168" height="36" rx="7" fill="url(#hatch)" opacity="0.75"/></g>
-        <g transform="translate(386,74)"><g class="pop k-t"><rect width="36" height="36" rx="7" class="tk c1"/><rect x="44" width="36" height="36" rx="7" class="tk c2"/><rect x="88" width="36" height="36" rx="7" class="tk c3"/><rect x="132" width="36" height="36" rx="7" class="tk c4"/><rect width="168" height="36" rx="7" fill="url(#hatch)" opacity="0.45"/></g></g>
-        <g transform="translate(686,74)"><g class="k-t1"><rect width="36" height="36" rx="7" class="tk c1"/><rect x="44" width="36" height="36" rx="7" class="tk c2"/><rect x="88" width="36" height="36" rx="7" class="tk c3"/><rect x="132" width="36" height="36" rx="7" class="tk c4"/><rect width="168" height="36" rx="7" fill="url(#hatch)" opacity="0.22"/></g></g>
-        <g transform="translate(986,74)"><g class="pop k-0"><rect width="36" height="36" rx="7" class="tk c1"/><rect x="44" width="36" height="36" rx="7" class="tk c2"/><rect x="88" width="36" height="36" rx="7" class="tk c3"/><rect x="132" width="36" height="36" rx="7" class="tk c4"/></g></g>
+        <g transform="translate(31,74)"><rect width="36" height="36" rx="7" class="tk c1"/><rect x="44" width="36" height="36" rx="7" class="tk c2"/><rect x="88" width="36" height="36" rx="7" class="tk c3"/><rect x="132" width="36" height="36" rx="7" class="tk c4"/><rect width="168" height="36" rx="7" fill="url(#hatchD)" opacity="0.7"/></g>
+        <g transform="translate(322,74)"><g class="pop k-t"><rect width="36" height="36" rx="7" class="tk c1"/><rect x="44" width="36" height="36" rx="7" class="tk c2"/><rect x="88" width="36" height="36" rx="7" class="tk c3"/><rect x="132" width="36" height="36" rx="7" class="tk c4"/><rect width="168" height="36" rx="7" fill="url(#hatchM)" opacity="0.7"/></g></g>
+        <g transform="translate(712,74)"><g class="k-t1"><rect width="36" height="36" rx="7" class="tk c1"/><rect x="44" width="36" height="36" rx="7" class="tk c2"/><rect x="88" width="36" height="36" rx="7" class="tk c3"/><rect x="132" width="36" height="36" rx="7" class="tk c4"/><rect width="168" height="36" rx="7" fill="url(#hatchS)" opacity="0.7"/></g></g>
+        <g transform="translate(1003,74)"><g class="pop k-0"><rect width="36" height="36" rx="7" class="tk c1"/><rect x="44" width="36" height="36" rx="7" class="tk c2"/><rect x="88" width="36" height="36" rx="7" class="tk c3"/><rect x="132" width="36" height="36" rx="7" class="tk c4"/></g></g>
       </g>
 
-      <text x="170" y="58" class="math ctr">k<tspan class="sub" dy="6">T</tspan></text>
-      <text x="470" y="58" class="math ctr">k<tspan class="sub" dy="6">t</tspan></text>
-      <text x="770" y="58" class="math ctr">k<tspan class="sub" dy="6">t−1</tspan></text>
-      <text x="1070" y="58" class="math ctr">k<tspan class="sub num" dy="6">0</tspan></text>
-      <text x="620" y="26" class="math small grey ctr">q<tspan dy="0">(k</tspan><tspan class="sub" dy="5">t</tspan><tspan dy="-5"> </tspan><tspan class="up">∣</tspan><tspan> k</tspan><tspan class="sub" dy="5">t−1</tspan><tspan dy="-5">)</tspan></text>
-      <text x="620" y="352" class="math small grey ctr">q<tspan dy="0">(x</tspan><tspan class="sub" dy="5">t</tspan><tspan dy="-5"> </tspan><tspan class="up">∣</tspan><tspan> x</tspan><tspan class="sub" dy="5">t−1</tspan><tspan dy="-5">)</tspan></text>
-      <text x="458" y="172" class="svg-label ink end">read out</text>
-      <text x="458" y="190" class="math small end">p<tspan class="sub" dy="5">θ</tspan><tspan dy="-5">(k</tspan><tspan class="sub" dy="5">t</tspan><tspan dy="-5"> </tspan><tspan class="up">∣</tspan><tspan> x</tspan><tspan class="sub" dy="5">t</tspan><tspan dy="-5">)</tspan></text>
-      <text x="652" y="150" class="svg-label coral">feed back</text>
-      <text x="619" y="272" class="math small blue ctr">p<tspan class="sub" dy="5">φ</tspan><tspan dy="-5">(x</tspan><tspan class="sub" dy="5">t−1</tspan><tspan dy="-5"> </tspan><tspan class="up">∣</tspan><tspan> x</tspan><tspan class="sub" dy="5">t</tspan><tspan dy="-5">, k</tspan><tspan class="sub" dy="5">t</tspan><tspan dy="-5">)</tspan></text>
+      <text x="115" y="58" class="math ctr">k<tspan class="sub" dy="6">T</tspan></text>
+      <text x="406" y="58" class="math ctr">k<tspan class="sub" dy="6">t</tspan></text>
+      <text x="796" y="58" class="math ctr">k<tspan class="sub" dy="6">t−1</tspan></text>
+      <text x="1087" y="58" class="math ctr">k<tspan class="sub num" dy="6">0</tspan></text>
+      <text x="601" y="22" class="math kern ctr">q<tspan dy="0">(k</tspan><tspan class="sub" dy="5">t</tspan><tspan dy="-5"> </tspan><tspan class="up">∣</tspan><tspan> k</tspan><tspan class="sub" dy="5">t−1</tspan><tspan dy="-5">)</tspan></text>
+      <text x="601" y="348" class="math kern ctr">q<tspan dy="0">(x</tspan><tspan class="sub" dy="5">t</tspan><tspan dy="-5"> </tspan><tspan class="up">∣</tspan><tspan> x</tspan><tspan class="sub" dy="5">t−1</tspan><tspan dy="-5">)</tspan></text>
+      <text x="420" y="150" class="svg-label lg ink start">Read out</text>
+      <text x="420" y="177" class="math mid start">p<tspan class="sub" dy="5">θ</tspan><tspan dy="-5">(k</tspan><tspan class="sub" dy="5">t</tspan><tspan dy="-5"> </tspan><tspan class="up">∣</tspan><tspan> x</tspan><tspan class="sub" dy="5">t</tspan><tspan dy="-5">)</tspan></text>
+      <text x="660" y="150" class="svg-label lg coral">Feed back</text>
+      <text x="601" y="273" class="math phi blue ctr">p<tspan class="sub" dy="5">φ</tspan><tspan dy="-5">(x</tspan><tspan class="sub" dy="5">t−1</tspan><tspan dy="-5"> </tspan><tspan class="up">∣</tspan><tspan> x</tspan><tspan class="sub" dy="5">t</tspan><tspan dy="-5">, k</tspan><tspan class="sub" dy="5">t</tspan><tspan dy="-5">)</tspan></text>
     </svg>
     </div>
 
     <div class="demo-grid">
       <div class="demo-sym"><span class="m">x<sub>t</sub></span></div>
-      <div class="latent-strip" id="demo-latent" aria-hidden="true"></div>
+      <div class="latent-box" id="demo-latent" aria-hidden="true"><svg></svg></div>
 
       <div></div>
-      <div class="demo-arrow ink"><i></i><b>read out</b><span class="m">p<sub>θ</sub>(k<sub class="num">0</sub> <span class="up">∣</span> x̂<sub class="num">0</sub>)</span></div>
+      <div class="demo-links" aria-hidden="true">
+        <div class="demo-arrow read" id="demo-read"><i></i><b>read out</b></div>
+        <div class="demo-arrow feed" id="demo-feed"><i></i><b>feed back</b></div>
+      </div>
 
-      <div class="demo-sym"><span class="m">k̂<sub class="num">0</sub></span></div>
+      <div class="demo-sym"><span class="m">k<sub>t</sub></span></div>
       <div class="token-row" id="demo-tokens"></div>
-
-      <div></div>
-      <div class="demo-arrow grey"><i></i><b>re-noise</b><span class="m">q(k<sub>t−1</sub> <span class="up">∣</span> k̂<sub class="num">0</sub>)</span><em>fed back as the scaffold for the next step</em></div>
-
-      <div class="demo-sym"><span class="m">k<sub>t−1</sub></span></div>
-      <div class="token-row scaffold" id="demo-scaffold"></div>
     </div>
 
     <div class="demo-legend">
-      <span><i class="sw settled"></i>settled</span>
-      <span><i class="sw tentative"></i>still changing</span>
+      <span><i class="sw noised"></i>still noise at this step</span>
       <span><i class="sw changed"></i>revised this step</span>
-      <span><i class="sw noised"></i>re-noised</span>
-      <!-- <span class="demo-note">Scripted example, not model output.</span> -->
     </div>
   </section>
 </header>
@@ -197,28 +197,27 @@
 <section class="section" id="novelty">
   <div class="container narrow">
     <p class="kicker">What is new</p>
-    <h2>A hierarchy, not a hybrid</h2>
-    <p class="lead">Hybrid models pair a discrete chain with a continuous channel, but the tokens keep a <strong>transition chain of their own</strong>. In HC-DLM the token state has <strong>no transition kernel</strong>: it depends on the past only through the latent, and the read-out scaffold is a variable of the model with its own forward kernel, not a fed-back estimate.</p>
+    <h2>Each level fixes the other&rsquo;s weakness</h2>
+    <p class="lead">Discrete diffusion samples the tokens of one step <strong>independently</strong> of each other. Continuous diffusion gives them a shared state, but nothing ties that state to a <strong>token configuration</strong> until the final decoding. HC-DLM takes the remedy from each side: tokens decoded together are read out of one shared latent, and that latent is denoised conditioned on a token scaffold at every step.</p>
   </div>
   <div class="container">
     <figure class="figure framed">
-      <img src="assets/comparison.webp" alt="Four reverse-step diagrams. (a) MDM: tokens k_t to k_{t-1} through a learned predictor. (b) CADD: same discrete chain plus a parameter-free lookup into token embeddings. (c) CCDD: a discrete chain and a continuous chain denoised side by side. (d) HC-DLM: the latent x_t to x_{t-1} is the only chain; tokens are read out from x_t and condition the latent update." width="2400" height="687">
-      <figcaption><strong>One reverse step, four designs.</strong> In MDM, CADD and CCDD the discrete chain is the generative process and the continuous signal plays a supporting role. In HC-DLM the latent is the chain; tokens are read out of it and fed back.</figcaption>
+      <img src="assets/comparison2.png" alt="Three reverse-step diagrams. (a) Discrete diffusion: tokens k_t go to k_{t-1} through a learned predictor, with no latent. (b) Continuous diffusion: the latent x_t goes to x_{t-1} through p_phi(x_{t-1} | x_t); tokens are decoded only at t = 0. (c) HC-DLM: tokens are read out of x_t by p_theta and condition the latent update p_phi(x_{t-1} | x_t, k_t)." width="3477" height="708">
+      <figcaption><strong>One reverse step, three designs.</strong> Discrete diffusion updates the tokens directly. Continuous diffusion updates a latent whose denoiser sees only the latent, and decodes tokens at the end. HC-DLM reads tokens out of the latent at every step and feeds them into the next latent update.</figcaption>
     </figure>
 
     <div class="table-wrap">
-      <table class="compare">
-        <thead><tr><th scope="col">Method</th><th scope="col">Continuous variable</th><th scope="col">Update of the continuous variable</th><th scope="col">Input of the token predictor</th><th scope="col">Decoded token can change later</th></tr></thead>
+      <table class="compare families">
+        <thead><tr><th scope="col"></th><th scope="col">Discrete diffusion<span class="eg">e.g. MDM, LLaDA</span></th><th scope="col">Continuous diffusion<span class="eg">e.g. Diffusion-LM, Plaid, LangFlow</span></th><th scope="col" class="ours">HC-DLM (ours)</th></tr></thead>
         <tbody>
-          <tr><th scope="row">MDM</th><td>none</td><td class="na">—</td><td><span class="m">k<sub>t</sub></span></td><td class="mark no">✕</td></tr>
-          <tr><th scope="row">VMD</th><td>global latent</td><td>not updated (sampled once)</td><td><span class="m">k<sub>t</sub>, z</span></td><td class="mark no">✕</td></tr>
-          <tr><th scope="row">CADD</th><td>noised token embeddings</td><td>no learned update</td><td><span class="m">k<sub>t</sub>, x<sub>t</sub></span></td><td class="mark no">✕</td></tr>
-          <tr><th scope="row">CCDD</th><td>frozen token embeddings</td><td>learned denoiser</td><td><span class="m">k<sub>t</sub>, x<sub>t</sub></span></td><td class="mark no">✕</td></tr>
-          <tr class="ours"><th scope="row">HC-DLM</th><td>global latent</td><td>learned denoiser</td><td><span class="m">x̂<sub class="num">0</sub></span> only</td><td class="mark yes">✓</td></tr>
+          <tr><th scope="row">State that persists across steps</th><td>the tokens</td><td>a continuous state (embeddings or a latent)</td><td class="ours">only the latent <span class="m">x<sub>t</sub></span>; tokens are re-read from it</td></tr>
+          <tr><th scope="row">Tokens decoded in the same step</th><td><span class="mark no">✕</span>sampled independently from their marginals</td><td><span class="mark yes">✓</span>depend on one shared continuous state</td><td class="ours"><span class="mark yes">✓</span>read out of one shared latent, <span class="m">p<sub>θ</sub>(k<sub>t</sub> <span class="up">∣</span> x<sub>t</sub>)</span></td></tr>
+          <tr><th scope="row">Latent tied to a token configuration</th><td class="na">— no latent</td><td><span class="mark no">✕</span>the denoiser sees only the continuous state; tokens enter only at the final decoding</td><td class="ours"><span class="mark yes">✓</span>every latent update is conditioned on <span class="m">k<sub>t</sub></span>, <span class="m">p<sub>φ</sub>(x<sub>t−1</sub> <span class="up">∣</span> x<sub>t</sub>, k<sub>t</sub>)</span></td></tr>
+          <tr><th scope="row">Tokens can be updated later</th><td><span class="mark no">✕</span>a token stays fixed once unmasked</td><td class="na">— tokens are decoded once, at the end</td><td class="ours"><span class="mark yes">✓</span><span class="m">k<sub>t</sub></span> has no chain of its own; every position is read out anew at each step</td></tr>
         </tbody>
       </table>
     </div>
-    <p class="table-note">MDM, VMD, CADD and CCDD use the absorbing kernel, under which a token stays fixed once it is unmasked. <span class="m">x̂<sub class="num">0</sub></span> is the denoiser's clean-latent estimate.</p>
+    <p class="table-note">Rounding and self-conditioning feed a token estimate back into continuous models, but that estimate is neither a variable of the model nor a term of its objective. In HC-DLM the scaffold <span class="m">k<sub>t</sub></span> is a model variable with a forward kernel of its own.</p>
   </div>
 </section>
 

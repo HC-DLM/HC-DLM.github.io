@@ -181,16 +181,8 @@
   <div class="container">
     <figure class="figure framed">
       <img src="assets/pipeline_train_v2.webp" alt="Training pipeline. An encoder maps clean tokens k_0 to a latent x_0. Independent forward kernels produce the noisy pair (x_t, k_t). The token-conditioned denoiser predicts the clean latent (loss J_cont), the token predictor decodes x_0 to tokens (loss J_recon), and the encoder is regularized by an entropy term J_ent." width="2400" height="906">
-      <figcaption><strong>Training from a single variational bound.</strong> The ELBO over the two-level trajectory separates into a reconstruction term for the token predictor, a token-conditioned continuous denoising term implemented with flow matching, and an entropy term that keeps the encoder non-degenerate. Algorithm 1 is the training loop; Algorithm 2 is the sampler illustrated at the top of the page.</figcaption>
+      <figcaption><strong>Training from a single variational bound.</strong> The ELBO over the two-level trajectory separates into a reconstruction term for the token predictor, a token-conditioned continuous denoising term implemented with flow matching, and an entropy term that keeps the encoder non-degenerate.</figcaption>
     </figure>
-    <div class="algs">
-      <figure class="figure alg">
-        <img src="assets/alg_train.webp" alt="Algorithm 1, HC-DLM training: sample k_0 and t, encode x_0, noise x_t and k_t independently, compute the weighted sum of the reconstruction, entropy and continuous denoising losses, update theta, phi, psi." width="1539" height="693">
-      </figure>
-      <figure class="figure alg">
-        <img src="assets/alg_sample.webp" alt="Algorithm 2, HC-DLM sampling: start from Gaussian x_T and stationary k_T; for t from T to 1, estimate the clean latent from (x_t, k_t), take an Euler step to x_{t-1}, read tokens out of the estimate, and re-noise them to level t-1; return the tokens read out of x_0." width="1539" height="710">
-      </figure>
-    </div>
   </div>
 </section>
 
@@ -198,7 +190,7 @@
   <div class="container narrow">
     <p class="kicker">What is new</p>
     <h2>Each level fixes the other&rsquo;s weakness</h2>
-    <p class="lead">Discrete diffusion samples the tokens of one step <strong>independently</strong> of each other. Continuous diffusion gives them a shared state, but nothing ties that state to a <strong>token configuration</strong> until the final decoding. HC-DLM takes the remedy from each side: tokens decoded together are read out of one shared latent, and that latent is denoised conditioned on a token scaffold at every step.</p>
+    <p class="lead">Discrete diffusion decodes the tokens of one step <strong>independently</strong>. Continuous diffusion gives them a shared state, but its denoiser <strong>never sees a token</strong> until the final decoding. HC-DLM reads tokens out of a shared latent at every step and feeds them back into the next latent update.</p>
   </div>
   <div class="container">
     <figure class="figure framed">
@@ -208,16 +200,13 @@
 
     <div class="table-wrap">
       <table class="compare families">
-        <thead><tr><th scope="col"></th><th scope="col">Discrete diffusion<span class="eg">e.g. MDM, LLaDA</span></th><th scope="col">Continuous diffusion<span class="eg">e.g. Diffusion-LM, Plaid, LangFlow</span></th><th scope="col" class="ours">HC-DLM (ours)</th></tr></thead>
+        <thead><tr><th scope="col"></th><th scope="col">Discrete diffusion<span class="eg">e.g. MDM, LLaDA</span></th><th scope="col">Continuous diffusion<span class="eg">e.g. Diffusion-LM, Plaid</span></th><th scope="col" class="ours">HC-DLM (ours)</th></tr></thead>
         <tbody>
-          <tr><th scope="row">State that persists across steps</th><td>the tokens</td><td>a continuous state (embeddings or a latent)</td><td class="ours">only the latent <span class="m">x<sub>t</sub></span>; tokens are re-read from it</td></tr>
-          <tr><th scope="row">Tokens decoded in the same step</th><td><span class="mark no">✕</span>sampled independently from their marginals</td><td><span class="mark yes">✓</span>depend on one shared continuous state</td><td class="ours"><span class="mark yes">✓</span>read out of one shared latent, <span class="m">p<sub>θ</sub>(k<sub>t</sub> <span class="up">∣</span> x<sub>t</sub>)</span></td></tr>
-          <tr><th scope="row">Latent tied to a token configuration</th><td class="na">— no latent</td><td><span class="mark no">✕</span>the denoiser sees only the continuous state; tokens enter only at the final decoding</td><td class="ours"><span class="mark yes">✓</span>every latent update is conditioned on <span class="m">k<sub>t</sub></span>, <span class="m">p<sub>φ</sub>(x<sub>t−1</sub> <span class="up">∣</span> x<sub>t</sub>, k<sub>t</sub>)</span></td></tr>
-          <tr><th scope="row">Tokens can be updated later</th><td><span class="mark no">✕</span>a token stays fixed once unmasked</td><td class="na">— tokens are decoded once, at the end</td><td class="ours"><span class="mark yes">✓</span><span class="m">k<sub>t</sub></span> has no chain of its own; every position is read out anew at each step</td></tr>
+          <tr><th scope="row">Dependence among tokens decoded in parallel</th><td><span class="mark no">✕</span></td><td><span class="mark yes">✓</span></td><td class="ours"><span class="mark yes">✓</span></td></tr>
+          <tr><th scope="row">Tied to tokens at every step</th><td><span class="mark yes">✓</span></td><td><span class="mark no">✕</span></td><td class="ours"><span class="mark yes">✓</span></td></tr>
         </tbody>
       </table>
     </div>
-    <p class="table-note">Rounding and self-conditioning feed a token estimate back into continuous models, but that estimate is neither a variable of the model nor a term of its objective. In HC-DLM the scaffold <span class="m">k<sub>t</sub></span> is a model variable with a forward kernel of its own.</p>
   </div>
 </section>
 

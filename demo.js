@@ -107,15 +107,12 @@
 
   const diagram = document.querySelector(".chain");
   const live = diagram.querySelector(".live");
-  const readEl = document.getElementById("demo-read");
-  const feedEl = document.getElementById("demo-feed");
 
   function showRead(instant) {
     diagram.dataset.phase = t === 0 ? "final" : "step";
     live.classList.remove("go-read", "go-feed");
     void live.getBoundingClientRect();  // restart the one-shot animations
     live.classList.add("go-read");
-    readEl.classList.add("on"); feedEl.classList.remove("on");
     setLatent(t / T, instant);
     renderTokens(t);
     tOut.value = (t / T).toFixed(2);
@@ -124,7 +121,6 @@
   function showFeed() {
     if (t === 0) return;
     live.classList.add("go-feed");
-    readEl.classList.remove("on"); feedEl.classList.add("on");
     setLatent((t - 1) / T, false);
   }
   function clear() { timers.forEach(clearTimeout); timers = []; }

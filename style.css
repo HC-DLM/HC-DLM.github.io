@@ -128,7 +128,9 @@ a { color: var(--ink); text-decoration-thickness: 1px; text-underline-offset: 0.
 .demo-grid { display: grid; grid-template-columns: 3.091rem 1fr; column-gap: 0.9091rem; row-gap: 0.4091rem; align-items: center; }
 .demo-sym { font-size: 1.182rem; line-height: 1; text-align: right; padding-right: 0.1818rem; }
 .demo-links { display: flex; gap: 1.818rem; min-height: 2.182rem; }
-.demo-arrow { display: flex; align-items: center; gap: 0.5rem; color: #c3c7cd; transition: color 300ms ease; }
+.demo-arrow { display: flex; align-items: center; gap: 0.5rem; }
+.demo-arrow.read { color: var(--ink-soft); }
+.demo-arrow.feed { color: var(--feed); }
 .demo-arrow.read { margin-left: 1.364rem; }
 .demo-arrow.feed { margin-left: 10.91rem; }
 .demo-arrow i { position: relative; align-self: stretch; width: 2px; background: currentColor; }
@@ -138,11 +140,9 @@ a { color: var(--ink); text-decoration-thickness: 1px; text-underline-offset: 0.
 .demo-arrow i::after { content: ""; position: absolute; left: -5px; border: 6px solid transparent; }
 .demo-arrow.read i::after { bottom: -8px; border-top: 8px solid currentColor; border-bottom: 0; }
 .demo-arrow.feed i::after { top: -8px; border-bottom: 8px solid currentColor; border-top: 0; }
-.demo-arrow b { font-size: 0.6727rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.2rem 0.5455rem; border-radius: 999px; transition: background-color 300ms ease, color 300ms ease; }
-.demo-arrow.read.on { color: var(--ink); }
-.demo-arrow.read.on b { background: var(--ink); color: #fff; }
-.demo-arrow.feed.on { color: var(--feed); }
-.demo-arrow.feed.on b { background: var(--feed); color: #fff; }
+.demo-arrow b { font-size: 0.6727rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.2rem 0.5455rem; border-radius: 999px; }
+.demo-arrow.read b { background: #eceef1; color: var(--ink); }
+.demo-arrow.feed b { background: color-mix(in srgb, var(--feed) 12%, #fff); color: var(--feed); }
 .latent-box { position: relative; height: 2.364rem; border-radius: 10px; border: 1px solid var(--blue); background: linear-gradient(90deg, #cfe0f7, #e6eef9); overflow: hidden; }
 .demo .latent-box svg { position: absolute; inset: 0; width: 100%; height: 100%; min-width: 0; display: block; }
 .latent-box line { stroke: #1f3350; stroke-width: 2.2; }
@@ -202,9 +202,8 @@ a { color: var(--ink); text-decoration-thickness: 1px; text-underline-offset: 0.
 .chain[data-phase="final"] .live .a-read-t { animation: none; }
 .chain[data-phase="final"] .live.go-read .a-read-0 { animation: draw-once calc(900ms / var(--speed, 1)) ease-out forwards; }
 @keyframes draw-once { from { stroke-dashoffset: 1; opacity: 1; } to { stroke-dashoffset: 0; opacity: 1; } }
-/* Flash the label of the latent a phase acts on: x_t at read-out, x_{t-1} at feed-back, x_0 at the final read-out. */
+/* Flash the label of the latent an update lands on: x_{t-1} at feed-back, x_0 at the final read-out. */
 .chain .latents text { transform-box: fill-box; transform-origin: center; paint-order: stroke; stroke: rgba(255, 255, 255, 0.9); stroke-width: 5px; stroke-linejoin: round; }
-.chain:not([data-phase="final"]) .live.go-read ~ .latents .p-t text,
 .chain .live.go-feed ~ .latents .p-t1 text,
 .chain[data-phase="final"] .live.go-read ~ .latents .p-0 text { animation: fl-text calc(1400ms / var(--speed, 1)) ease-out; }
 @keyframes fl-text { 0%, 100% { fill: var(--ink); } 15%, 55% { fill: var(--accent); } }
@@ -241,8 +240,6 @@ h3 { font-size: 1.15rem; letter-spacing: -0.01em; }
 .steps li b { color: var(--ink); }
 .steps li::before { content: counter(step); position: absolute; left: 0; top: 0.1rem; width: 1.7rem; height: 1.7rem; border-radius: 999px; background: var(--ink); color: #fff; font-size: 0.8rem; font-weight: 700; display: grid; place-items: center; }
 .steps li:nth-child(2)::before { background: var(--accent); }
-.algs { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.5rem; max-width: 780px; margin-left: auto; margin-right: auto; }
-.alg img { width: 100%; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 0.9rem 1.1rem; box-shadow: var(--shadow-1); }
 .fold { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow-1); padding: 0 1.5rem; }
 .fold summary { cursor: pointer; list-style: none; padding: 1.1rem 0; font-weight: 700; font-size: 1rem; display: flex; align-items: center; justify-content: space-between; }
 .fold summary::-webkit-details-marker { display: none; }
@@ -269,10 +266,12 @@ table.compare.families th, table.compare.families td { text-align: left; vertica
 table.compare.families thead th { text-align: center; vertical-align: top; font-size: 1rem; }
 table.compare.families thead th.ours { color: var(--accent); }
 table.compare.families .eg { display: block; margin-top: 0.15rem; font-size: 0.8rem; font-weight: 400; color: var(--muted); }
-table.compare.families tbody th { width: 21%; }
+table.compare.families tbody th { width: 30%; }
 table.compare.families td.ours, table.compare.families th.ours { background: var(--accent-soft); }
 table.compare.families td.ours { color: var(--ink); }
-table.compare.families td .mark { display: inline-block; width: 1.2em; font-weight: 700; }
+table.compare.families td, table.compare.families tbody th { vertical-align: middle; }
+table.compare.families td { text-align: center; }
+table.compare.families td .mark { display: block; font-size: 1.35rem; line-height: 1.2; font-weight: 700; }
 
 .mark.no { color: #b7bac0; }
 .mark.yes { color: #2f9e5f; font-weight: 700; }
@@ -366,7 +365,7 @@ table.results .mark { text-align: center; }
   .hero { padding: 2.727rem 0.9091rem 2.273rem; }
   .framed-svg .svg-scroll { padding: 0.6rem 0.6rem 0.2rem; }
   .framed-svg svg { min-width: 760px; }
-  .finding-grid, .panels, .tables, .algs { grid-template-columns: 1fr; }
+  .finding-grid, .panels, .tables { grid-template-columns: 1fr; }
   .finding:last-child { grid-column: auto; }
   .panels .panel:last-child { grid-column: auto; max-width: none; }
   .demo { padding: 0.9091rem; }

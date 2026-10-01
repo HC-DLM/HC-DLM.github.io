@@ -1,8 +1,8 @@
-/* Light, sans-serif project page. Accent (coral) marks the token readout and our rows; blue marks the latent. */
+/* Light, sans-serif project page. Accent (wine) marks headings, numbers and our rows; blue marks the latent; --feed marks feed-back. */
 :root {
-  --accent: #d1553c;
-  --accent-soft: #fdeeea;
-  --accent-line: #f3cfc6;
+  --accent: #8c1d3c;
+  --accent-soft: #f5ebed;
+  --accent-line: #e1c4cc;
   --feed: #b5533c;          /* feed-back arrows, as in the paper figures */
   --blue: #2f66b3;
   --blue-soft: #e6eef9;

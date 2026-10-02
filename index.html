@@ -195,8 +195,8 @@
   </div>
   <div class="container">
     <figure class="figure framed">
-      <img src="assets/comparison3.png" alt="Three reverse-step diagrams. (a) Discrete diffusion: tokens k_t go to k_{t-1} through a learned predictor, with no latent. (b) Continuous diffusion: the latent x_t goes to x_{t-1} through p_phi(x_{t-1} | x_t); tokens are decoded only at t = 0. (c) HC-DLM: tokens are read out of x_t by p_theta and condition the latent update p_phi(x_{t-1} | x_t, k_t)." width="3477" height="708">
-      <figcaption><strong>One reverse step, three designs.</strong> Discrete diffusion updates tokens directly, one marginal at a time. Continuous diffusion denoises a latent that is blind to tokens and decodes only at the end. In HC-DLM the two levels talk at every step: tokens are read out of the latent, then guide its next update.</figcaption>
+      <img src="assets/comparison3.png" alt="Four reverse-step diagrams. (a) Discrete diffusion: tokens k_t go to k_{t-1} through a learned predictor, with no latent. (b) Continuous diffusion: the latent x_t goes to x_{t-1} through p_phi(x_{t-1} | x_t); tokens are decoded only at t = 0. (c) Hybrid diffusion: a discrete chain and a continuous chain advance together through p_phi(k_{t-1}, x_{t-1} | x_t, k_t), each conditioning the other. (d) HC-DLM: tokens are read out of x_t by p_theta and condition the latent update p_phi(x_{t-1} | x_t, k_t)." width="3249" height="708">
+      <figcaption><strong>One reverse step, four designs.</strong> Discrete diffusion updates tokens directly, one marginal at a time. Continuous diffusion denoises a latent that is blind to tokens and decodes only at the end. Hybrid diffusion keeps a self-contained discrete chain and attaches a continuous signal to it. In HC-DLM the two levels talk at every step: tokens are read out of the latent, then guide its next update.</figcaption>
     </figure>
 
     <div class="table-wrap">

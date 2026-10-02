@@ -307,7 +307,7 @@ table.compare.families td .mark { display: block; font-size: 1.25rem; line-heigh
 .bars { background: var(--bg-alt); border: 1px solid var(--line); border-radius: 12px; padding: 0.9rem 1rem 0.8rem; align-self: start; }
 .bars-title { margin: 0 0 0.6rem; font-size: 0.8rem; font-weight: 600; color: var(--ink-soft); }
 .bar-row { display: grid; grid-template-columns: minmax(6rem, 9.5rem) 1fr 3.2rem; align-items: center; gap: 0.6rem; font-size: 0.8rem; padding: 0.22rem 0; color: var(--ink-soft); }
-.bar-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bar-label { line-height: 1.25; }
 .bar { display: block; height: 0.85rem; background: #e6e6ea; border-radius: 4px; overflow: hidden; }
 .bar i { display: block; height: 100%; width: calc(var(--v) * 1%); background: #b9bcc4; border-radius: 4px; }
 .bars-ppl .bar i { width: calc(var(--v) / 120 * 100%); }

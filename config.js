@@ -24,11 +24,13 @@ window.SITE = {
     code: "https://github.com/rhfeiyang/HC-DLM",
   },
 
-  bibtex: `@article{ren2026hierarchical,
-  title   = {Hierarchical Continuous Diffusion Language Models},
-  author  = {Ren, Hui and Li, Zihan and Liu, Chang and Liu, Huidong and
-             Schwing, Alexander},
-  journal = {arXiv preprint arXiv:2610.02193},
-  year    = {2026}
+  bibtex: `@misc{ren2026hcdlm,
+      title={Hierarchical Continuous Diffusion Language Models}, 
+      author={Hui Ren and Zihan Li and Chang Liu and Huidong Liu and Alexander Schwing},
+      year={2026},
+      eprint={2610.02193},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL},
+      url={https://arxiv.org/abs/2610.02193}, 
 }`,
 };

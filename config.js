@@ -20,7 +20,7 @@ window.SITE = {
   equalNote: "Equal contribution",
 
   links: {
-    arxiv: "TODO https://arxiv.org/abs/XXXX.XXXXX",
+    arxiv: "https://arxiv.org/abs/2610.02193",
     code: "https://github.com/rhfeiyang/HC-DLM",
   },
 
@@ -28,7 +28,7 @@ window.SITE = {
   title   = {Hierarchical Continuous Diffusion Language Models},
   author  = {Ren, Hui and Li, Zihan and Liu, Chang and Liu, Huidong and
              Schwing, Alexander},
-  journal = {arXiv preprint arXiv:XXXX.XXXXX},
+  journal = {arXiv preprint arXiv:2610.02193},
   year    = {2026}
 }`,
 };

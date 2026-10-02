@@ -21,6 +21,7 @@ window.SITE = {
 
   links: {
     arxiv: "https://arxiv.org/abs/2610.02193",
+    hf: "https://huggingface.co/papers/2610.02193",
     code: "https://github.com/rhfeiyang/HC-DLM",
   },
 

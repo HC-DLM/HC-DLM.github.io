@@ -8,7 +8,7 @@ window.SITE = {
   // `equal: true` adds the shared-first-author mark; `url` links the name to a homepage.
   authors: [
     { name: "Hui Ren", url: "https://rhfeiyang.top/", affil: [1] },
-    { name: "Zihan Li", url: "https://www.linkedin.com/in/zihan-li-616b68325/", affil: [1] },
+    { name: "Zihan Li", url: "https://prime-ppzi.github.io/", affil: [1] },
     { name: "Chang Liu", url: "https://ruachang.github.io/", affil: [1] },
     { name: "Huidong Liu", url: "https://harryliew.github.io/", affil: [2] },
     { name: "Alexander Schwing", url: "https://www.alexander-schwing.de/", affil: [1] },
